@@ -5,8 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "REPLACE_WITH_YOUR_KV_ID"
-preview_id = "REPLACE_WITH_YOUR_PREVIEW_KV_ID"
+id = "783e884499f742bd8f195f91d3cd3734"
 
 [vars]
 FRONTEND_URL = "http://localhost:5173"
