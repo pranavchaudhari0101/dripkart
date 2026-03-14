@@ -8,7 +8,6 @@ export function OrderSuccess() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId') || 'ORD-UNKNOWN';
   const [status, setStatus] = useState<'PENDING' | 'PAID' | 'FAILED'>('PENDING');
-  const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -22,6 +21,7 @@ export function OrderSuccess() {
 
     if (orderId === 'ORD-UNKNOWN') return;
 
+    let pollCount = 0;
     // Poll for payment status
     const interval = setInterval(async () => {
       try {
@@ -37,12 +37,10 @@ export function OrderSuccess() {
         console.error('Polling error', err);
       }
       
-      setAttempts(prev => {
-        if (prev > 20) { // Stop after ~1 minute
-          clearInterval(interval);
-        }
-        return prev + 1;
-      });
+      pollCount++;
+      if (pollCount > 20) { // Stop after ~1 minute
+        clearInterval(interval);
+      }
     }, 3000);
 
     return () => clearInterval(interval);
