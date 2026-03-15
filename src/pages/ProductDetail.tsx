@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import { Heart, ChevronRight } from 'lucide-react';
+import { Reviews } from '../components/Reviews';
 
 const PRODUCTS: Record<string, any> = {
   'hoodie': { id: 'hoodie', name: 'Mens Premium Oversized Hoodie', price: 1299, image: '/src/assets/hoodie.png', desc: 'Heavyweight loopback cotton. Dropped shoulders, relaxed fit.', details: ['100% Organic Cotton', '450gsm heavyweight fabric', 'Kangaroo pocket', 'Ribbed trims'] },
@@ -78,7 +79,7 @@ export function ProductDetail() {
               <button className="font-body text-[11px] text-brand-textPrimary font-medium underline underline-offset-4 hover:text-brand-accentColor transition-colors">Size Guide</button>
             </div>
                   <div className="grid grid-cols-4 gap-3">
-                    {product.sizes.map((s: { size: string; stock: number }) => (
+                    {(product.sizes || []).map((s: { size: string; stock: number }) => (
                       <button 
                         key={s.size}
                         disabled={s.stock === 0}
@@ -130,6 +131,8 @@ export function ProductDetail() {
           </div>
         </div>
       </div>
+
+      <Reviews />
     </div>
   );
 }

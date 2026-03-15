@@ -24,6 +24,7 @@ api.interceptors.request.use(
          console.error('Failed to parse auth storage', err)
       }
     }
+
     return config
   },
   (error) => {
@@ -38,7 +39,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       console.warn('Session expired or unauthorized. Clearing session.')
       localStorage.removeItem('auth-storage')
-      // Optionally reload or redirect if needed, but clearing storage is first step
     }
     return Promise.reject(error)
   }

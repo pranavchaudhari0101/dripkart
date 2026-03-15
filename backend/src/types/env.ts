@@ -18,4 +18,5 @@ export interface Env {
   SHIPROCKET_PASSWORD: string
   PHONEPE_ENV: 'sandbox' | 'production'
   BACKEND_URL: string
+  DEV_SECRET: string
 }

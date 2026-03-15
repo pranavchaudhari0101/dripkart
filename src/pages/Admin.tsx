@@ -66,7 +66,9 @@ export function Admin() {
       data.append('category', formData.category);
       data.append('badge', formData.badge);
       data.append('isFeatured', String(formData.isFeatured));
-      data.append('tags', formData.tags);
+      
+      const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+      data.append('tags', JSON.stringify(tagsArray));
 
       const sizeMap: Record<string, number> = {};
       sizes.forEach(s => { if(s.size) sizeMap[s.size] = s.stock; });

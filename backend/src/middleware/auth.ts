@@ -11,6 +11,7 @@ type Variables = {
 
 export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
   const authHeader = c.req.header('Authorization')
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return c.json({ error: 'Unauthorized: Missing or invalid token' }, 401)
   }
@@ -28,6 +29,7 @@ export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: Varia
 
 export const adminOnlyMiddleware = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
   const user = c.get('user')
+
   if (!user || user.role !== 'ADMIN') {
     return c.json({ error: 'Forbidden: Admin access required' }, 403)
   }

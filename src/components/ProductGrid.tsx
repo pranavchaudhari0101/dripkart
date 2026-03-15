@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useCart } from '../context/CartContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,6 +16,8 @@ const products = [
 
 export function ProductGrid() {
   const sectionRef = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+  const { addToCart, toggleCart } = useCart();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -57,7 +61,11 @@ export function ProductGrid() {
 
       <div className="product-grid grid grid-cols-2 md:grid-cols-4 gap-[2px]">
         {products.map((p) => (
-          <div key={p.id} className="product-card relative overflow-hidden cursor-pointer group">
+          <div 
+            key={p.id} 
+            className="product-card relative overflow-hidden cursor-pointer group"
+            onClick={() => navigate(`/shop/${p.id}`)}
+          >
             <div className="relative w-full pt-[133.33%] overflow-hidden bg-brand-bgSecondary">
               
               <button className="absolute top-3 left-3 w-10 h-10 bg-brand-accentColor border border-brand-textPrimary/20 rounded-full flex items-center justify-center cursor-pointer z-[2] opacity-0 group-hover:opacity-100 transition-opacity">
@@ -76,7 +84,20 @@ export function ProductGrid() {
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-105" 
               />
 
-              <div className="absolute bottom-0 left-0 w-full bg-brand-textPrimary text-white font-body font-medium text-[10px] uppercase tracking-[0.12em] p-3.5 text-center translate-y-full transition-all duration-350 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-[2] cursor-pointer group-hover:translate-y-0 hover:!bg-brand-accentColor hover:!text-brand-textPrimary">
+              <div 
+                className="absolute bottom-0 left-0 w-full bg-brand-textPrimary text-white font-body font-medium text-[10px] uppercase tracking-[0.12em] p-3.5 text-center translate-y-full transition-all duration-350 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-[2] cursor-pointer group-hover:translate-y-0 hover:!bg-brand-accentColor hover:!text-brand-textPrimary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addToCart({
+                    id: p.id,
+                    name: p.name,
+                    price: parseInt(p.price.replace(/[^\d]/g, '')),
+                    image: p.image,
+                    size: 'M'
+                  });
+                  toggleCart();
+                }}
+              >
                 + Quick Add
               </div>
             </div>
