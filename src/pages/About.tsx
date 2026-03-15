@@ -24,7 +24,7 @@ export function About() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center">
           <div className="about-img w-full pt-[120%] bg-brand-bgSecondary relative overflow-hidden">
-            <img src="/src/assets/hero-model.png" alt="Brand Story" className="absolute inset-0 w-full h-full object-cover object-top" />
+            <img src="/hero-model.png" alt="Brand Story" className="absolute inset-0 w-full h-full object-cover object-top" />
           </div>
           
           <div className="about-text">

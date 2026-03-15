@@ -5,9 +5,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const collections = [
-  { title: "ESSENTIALS '26", desc: "The foundational pieces every wardrobe needs. Clean cuts, heavyweight fabrics, permanent drip.", img: "/src/assets/hero-model.png" },
-  { title: "NIGHT RUN", desc: "Reflective detailing. Technical fabrics. Built for the city after dark.", img: "/src/assets/hoodie.png" },
-  { title: "CORE CARGO", desc: "Utility re-imagined. 3D pockets, durable twill, and a silhouette that commands attention.", img: "/src/assets/cargo-shirt.png" },
+  { title: "ESSENTIALS '26", desc: "The foundational pieces every wardrobe needs. Clean cuts, heavyweight fabrics, permanent drip.", img: "/hero-model.png" },
+  { title: "NIGHT RUN", desc: "Reflective detailing. Technical fabrics. Built for the city after dark.", img: "/hoodie.png" },
+  { title: "CORE CARGO", desc: "Utility re-imagined. 3D pockets, durable twill, and a silhouette that commands attention.", img: "/cargo-shirt.png" },
 ];
 
 export function Collections() {
