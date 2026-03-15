@@ -8,10 +8,10 @@ import { useCart } from '../context/CartContext';
 gsap.registerPlugin(ScrollTrigger);
 
 const products = [
-  { id: 'hoodie', name: 'Mens Premium Oversized Hoodie', price: '₹1,299', image: '/src/assets/hoodie.png', badge: 'Low Stock', badgeType: 'white' },
-  { id: 'cargo', name: 'Mens Cargo Shirt — Cream', price: '₹1,099', image: '/src/assets/cargo-shirt.png', badge: 'Popular', badgeType: 'accent' },
-  { id: 'drop', name: 'Premium Urban Drop Tee', price: '₹799', image: '/src/assets/drop-tee.png', badge: 'Best Seller', badgeType: 'white' },
-  { id: 'zipup', name: 'Mens Zip-Up Hoodie — Slate', price: '₹1,499', image: '/src/assets/zipup-hoodie.png', badge: 'Best Seller', badgeType: 'white' }
+  { id: 'hoodie', name: 'Mens Premium Oversized Hoodie', price: '₹1,299', image: '/hoodie.png', badge: 'Low Stock', badgeType: 'white' },
+  { id: 'cargo', name: 'Mens Cargo Shirt — Cream', price: '₹1,099', image: '/cargo-shirt.png', badge: 'Popular', badgeType: 'accent' },
+  { id: 'drop', name: 'Premium Urban Drop Tee', price: '₹799', image: '/drop-tee.png', badge: 'Best Seller', badgeType: 'white' },
+  { id: 'zipup', name: 'Mens Zip-Up Hoodie — Slate', price: '₹1,499', image: '/zipup-hoodie.png', badge: 'Best Seller', badgeType: 'white' }
 ];
 
 export function ProductGrid() {

@@ -43,7 +43,7 @@ export function Hero() {
       />
 
       <img 
-        src="/src/assets/hero-model.png" 
+        src="/hero-model.png" 
         alt="Fashion model" 
         className="hero-model absolute right-[-5%] md:right-[5%] bottom-0 h-[70%] md:h-[85%] z-[2] object-contain object-bottom"
       />
@@ -61,7 +61,7 @@ export function Hero() {
         </a>
       </div>
 
-      <div className="absolute bottom-12 right-6 md:right-12 hidden md:block">
+      <div className="hero-top-right absolute bottom-12 right-6 md:right-12 hidden md:block">
         <p className="font-display font-black italic text-[14px] text-white leading-[1.6] uppercase tracking-widest">Exclusive &</p>
         <p className="font-display font-black italic text-[14px] text-white leading-[1.6] uppercase tracking-widest">Trending Collection</p>
       </div>
