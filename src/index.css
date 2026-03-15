@@ -103,11 +103,11 @@
   }
 
   .neon-glow {
-    @apply shadow-[0_0_20px_rgba(200, 255, 0, 0.4)] border-[#d1ff00]/60;
+    @apply shadow-[0_0_20px_rgba(200,255,0,0.4)] border-[#d1ff00]/60;
   }
 
   .neon-text {
-    @apply text-[#d1ff00] drop-shadow-[0_0_10px_rgba(200, 255, 0, 0.6)];
+    @apply text-[#d1ff00] drop-shadow-[0_0_10px_rgba(200,255,0,0.6)];
   }
 
   /* Custom Cursor / Selection */
