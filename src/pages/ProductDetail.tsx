@@ -35,6 +35,8 @@ export function ProductDetail() {
   
   const [size, setSize] = useState('M');
   const [qty, setQty] = useState(1);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -64,8 +66,11 @@ export function ProductDetail() {
           {/* Product Image Gallery */}
           <div className="lg:col-span-7 space-y-6 pd-image">
             <div className="relative aspect-[4/5] overflow-hidden bg-black flex items-center justify-center">
-              <button className="absolute top-8 right-8 w-12 h-12 glass-dark rounded-full flex items-center justify-center cursor-pointer z-10 hover:bg-[#c8ff00] hover:text-black transition-all group/heart shadow-2xl">
-                <Heart size={20} strokeWidth={1.5} className="group-hover/heart:fill-current" />
+              <button 
+                onClick={() => setIsWishlisted(!isWishlisted)}
+                className="absolute top-8 right-8 w-12 h-12 glass-dark rounded-full flex items-center justify-center cursor-pointer z-10 hover:bg-[#c8ff00] hover:text-black transition-all group/heart shadow-2xl"
+              >
+                <Heart size={20} strokeWidth={1.5} className={`${isWishlisted ? 'fill-current text-[#c8ff00]' : 'group-hover/heart:fill-current'}`} />
               </button>
               <img 
                 src={product.image} 
@@ -112,7 +117,12 @@ export function ProductDetail() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="font-body font-bold text-[11px] uppercase tracking-[0.2em] text-white">Select Size</span>
-                  <button className="font-body text-[11px] text-[#c8ff00] border-b border-[#c8ff00]/30 pb-0.5 font-bold hover:border-[#c8ff00] transition-colors">Size Guide</button>
+                  <button 
+                    onClick={() => setShowSizeGuide(true)}
+                    className="font-body text-[11px] text-[#c8ff00] border-b border-[#c8ff00]/30 pb-0.5 font-bold hover:border-[#c8ff00] transition-colors"
+                  >
+                    Size Guide
+                  </button>
                 </div>
                 <div className="flex flex-wrap gap-4">
                   {(product.sizes || []).map((s: { size: string; stock: number }) => (
@@ -146,7 +156,13 @@ export function ProductDetail() {
               <div className="pt-4">
                 <button 
                   onClick={() => {
-                    addToCart({ ...product, size, quantity: qty });
+                    addToCart({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      image: product.image,
+                      size: size
+                    }, qty);
                     toggleCart();
                   }}
                   className="w-full h-18 bg-[#c8ff00] text-black font-body font-black text-[15px] uppercase tracking-[0.4em] transition-all hover:brightness-110 active:scale-[0.98] shadow-[0_0_30px_rgba(200,255,0,0.2)]"
@@ -179,6 +195,58 @@ export function ProductDetail() {
             <Reviews />
           </div>
       </div>
+
+      {/* Size Guide Modal */}
+      {showSizeGuide && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setShowSizeGuide(false)}></div>
+          <div className="relative w-full max-w-[500px] bg-[#1a1a1a] border border-white/10 p-8 md:p-12 animate-in fade-in zoom-in duration-300">
+            <button 
+              onClick={() => setShowSizeGuide(false)}
+              className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+            >
+              <ChevronRight className="rotate-45" size={24} />
+            </button>
+            <h2 className="font-display text-[32px] uppercase tracking-tighter mb-8 italic">Size <span className="text-[#c8ff00]">Guide</span></h2>
+            <div className="space-y-6">
+              <table className="w-full font-body text-[12px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 text-[#c8ff00] uppercase tracking-widest">
+                    <th className="py-3 font-black">Size</th>
+                    <th className="py-3 font-black">Chest (in)</th>
+                    <th className="py-3 font-black">Length (in)</th>
+                  </tr>
+                </thead>
+                <tbody className="text-white/60">
+                  <tr className="border-b border-white/5">
+                    <td className="py-4 font-bold text-white uppercase">Small</td>
+                    <td className="py-4">38 - 40</td>
+                    <td className="py-4">27.0</td>
+                  </tr>
+                  <tr className="border-b border-white/5">
+                    <td className="py-4 font-bold text-white uppercase">Medium</td>
+                    <td className="py-4">40 - 42</td>
+                    <td className="py-4">28.5</td>
+                  </tr>
+                  <tr className="border-b border-white/5">
+                    <td className="py-4 font-bold text-white uppercase">Large</td>
+                    <td className="py-4">42 - 44</td>
+                    <td className="py-4">30.0</td>
+                  </tr>
+                  <tr className="border-b border-white/5">
+                    <td className="py-4 font-bold text-white uppercase">XL</td>
+                    <td className="py-4">44 - 46</td>
+                    <td className="py-4">31.5</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="font-body text-[11px] text-white/30 italic">
+                * Our silhouettes are designed with a relaxed, oversized fit. For a truer fit, we recommend sizing down.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

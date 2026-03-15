@@ -63,7 +63,7 @@ export function Shop() {
           <div className="mb-8">
             <h3 className="font-body font-medium text-[11px] uppercase tracking-[0.15em] mb-4">Categories</h3>
             <ul className="space-y-3">
-              {['All', 'T-Shirts', 'Hoodies', 'Outerwear', 'Bottoms'].map((cat) => (
+              {['All', 'Tees', 'Hoodies', 'Outerwear', 'Bottoms'].map((cat) => (
                 <li key={cat}>
                   <button 
                     onClick={() => setActiveCategory(cat)}
@@ -80,7 +80,9 @@ export function Shop() {
         {/* Product Grid */}
         <div className="flex-1">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-[2px]">
-            {products.map((p: any) => (
+            {products
+              .filter((p: any) => activeCategory === 'All' || p.category?.toLowerCase() === activeCategory.toLowerCase() || (activeCategory === 'T-Shirts' && p.category?.toLowerCase() === 'tees'))
+              .map((p: any) => (
               <div key={p.id} className="shop-product relative overflow-hidden group hover:z-10 bg-brand-bgSecondary cursor-pointer">
                 <Link to={`/shop/${p.slug || p.id}`} className="block">
                   <div className="relative w-full pt-[133.33%] overflow-hidden bg-brand-bgSecondary">
@@ -111,7 +113,7 @@ export function Shop() {
                       onClick={(e) => { 
                         e.preventDefault(); 
                         e.stopPropagation(); 
-                        addToCart({ ...p, size: 'M' }); 
+                        addToCart({ ...p, size: 'M' }, 1); 
                       }} 
                       className="absolute bottom-0 left-0 w-full bg-brand-textPrimary text-white font-body font-medium text-[10px] uppercase tracking-[0.12em] p-3.5 text-center translate-y-full transition-all duration-350 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-[2] group-hover:translate-y-0 hover:!bg-brand-accentColor hover:!text-brand-textPrimary active:scale-y-95 pointer-events-auto"
                     >

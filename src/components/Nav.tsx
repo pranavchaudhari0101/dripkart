@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, User, ShoppingBag } from 'lucide-react';
+import { Search, User, ShoppingBag, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '../context/CartContext';
@@ -15,6 +15,8 @@ export function Nav() {
   const isHome = location.pathname === '/';
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!isHome) {
@@ -31,7 +33,18 @@ export function Nav() {
       }
     });
 
-    return () => st.kill();
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowSearch(false);
+        setShowUserMenu(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+
+    return () => {
+      st.kill();
+      window.removeEventListener('keydown', handleEsc);
+    };
   }, [isHome]);
 
   const isDarkPage = location.pathname.startsWith('/shop/') || location.pathname === '/admin' || location.pathname === '/collections';
@@ -72,7 +85,10 @@ export function Nav() {
       </div>
 
       <div className="flex items-center gap-6">
-        <button className="hover:scale-110 hover:text-brand-accentColor transition-all duration-300">
+        <button 
+          onClick={() => setShowSearch(true)}
+          className="hover:scale-110 hover:text-brand-accentColor transition-all duration-300"
+        >
           <Search strokeWidth={2.5} size={20} />
         </button>
         
@@ -109,7 +125,6 @@ export function Nav() {
             </div>
           )}
         </div>
-
         <Link 
           to="/cart"
           className="relative hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center"
@@ -122,6 +137,39 @@ export function Nav() {
           )}
         </Link>
       </div>
+
+      {/* Search Overlay */}
+      {showSearch && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-white animate-in fade-in slide-in-from-top-full duration-500">
+          <div className="flex items-center justify-between px-6 md:px-12 py-8 border-b border-gray-100">
+            <div className="font-display text-[26px] font-bold tracking-tighter">SEARCH_MODAL</div>
+            <button 
+              onClick={() => setShowSearch(false)}
+              className="w-12 h-12 bg-black text-white flex items-center justify-center hover:bg-brand-accentColor hover:text-black transition-all"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center px-6">
+            <div className="w-full max-w-[800px] space-y-8">
+              <input 
+                autoFocus
+                type="text" 
+                placeholder="WHAT ARE YOU LOOKING FOR?" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                className="w-full bg-transparent border-b-2 border-brand-textPrimary py-6 font-display text-[32px] md:text-[56px] font-black italic tracking-tighter outline-none placeholder:text-gray-100"
+              />
+              <div className="flex flex-wrap gap-4">
+                <span className="font-body text-[11px] uppercase tracking-[0.2em] font-black text-brand-textMuted">Trending:</span>
+                {['Hoodies', 'Cargo', 'Drop Tee', 'Essentials'].map(tag => (
+                  <button key={tag} className="font-body text-[11px] uppercase tracking-[0.2em] font-medium hover:text-brand-accentColor transition-colors underline decoration-brand-accentColor/0 hover:decoration-brand-accentColor underline-offset-4 decoration-2">{tag}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
