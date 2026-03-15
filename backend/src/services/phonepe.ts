@@ -32,6 +32,7 @@ export async function initiatePayment(orderId: string, amount: number, mobile: s
   })
 
   const data = await res.json() as any
+
   if (!res.ok || data.success === false) {
     console.error('PhonePe API Error:', data);
     throw new Error(data.message || 'PhonePe payment initiation failed');

@@ -22,8 +22,8 @@
     --muted: 40 18% 94%;
     --muted-foreground: 0 0% 25%; /* Readable dark gray */
  
-    --accent: 73 100% 50%; /* #c8ff00 */
-    --accent-foreground: 0 0% 10%;
+    --accent: 73 100% 55%; /* Sharper Neon Lime #d1ff00 */
+    --accent-foreground: 0 0% 0%;
  
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -83,6 +83,28 @@
   }
   
   .gsap-fade {
-    opacity: 0;
+    @apply opacity-0;
+  }
+
+  /* Premium Utilities */
+  .glass {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl;
+  }
+
+  .glass-dark {
+    @apply bg-black/70 backdrop-blur-lg border border-white/10 shadow-2xl;
+  }
+
+  .neon-glow {
+    @apply shadow-[0_0_20px_rgba(200,255,0,0.4)] border-[#d1ff00]/60;
+  }
+
+  .neon-text {
+    @apply text-[#d1ff00] drop-shadow-[0_0_10px_rgba(200,255,0,0.6)];
+  }
+
+  /* Custom Cursor / Selection */
+  ::selection {
+    @apply bg-[#d1ff00] text-black;
   }
 }

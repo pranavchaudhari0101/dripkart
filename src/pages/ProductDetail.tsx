@@ -38,101 +38,147 @@ export function ProductDetail() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Use a slight pause to ensure DOM is ready and opacity is managed
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.from('.pd-image', { x: -40, opacity: 0, duration: 0.8 })
-      .from('.pd-info > *', { y: 20, opacity: 0, duration: 0.5, stagger: 0.1 }, '-=0.4');
+    
+    // Set initial opacity to small non-zero value to prevent "pop" if JS fails
+    gsap.set(['.pd-image', '.pd-info > *'], { opacity: 0 });
+    
+    tl.to('.pd-image', { opacity: 1, x: 0, duration: 0.8, startAt: { x: -20 } })
+      .to('.pd-info > *', { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, startAt: { y: 10 } }, '-=0.4');
   }, [id]);
 
   return (
-    <div className="pt-[120px] pb-20 px-6 md:px-12 max-w-[1400px] mx-auto min-h-screen">
-      <div className="flex items-center gap-2 font-body text-[10px] uppercase tracking-[0.15em] text-brand-textMuted mb-8">
-        <Link to="/" className="hover:text-brand-textPrimary transition-colors">Home</Link>
-        <ChevronRight size={12} />
-        <Link to="/shop" className="hover:text-brand-textPrimary transition-colors">Shop</Link>
-        <ChevronRight size={12} />
-        <span className="text-brand-textPrimary">{product.name}</span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-        
-        {/* Product Image */}
-        <div className="pd-image relative bg-brand-bgSecondary aspect-[3/4] overflow-hidden group">
-          <button className="absolute top-5 right-5 w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center cursor-pointer z-10 hover:bg-brand-accentColor transition-colors shadow-xl">
-            <Heart size={18} strokeWidth={1.5} className="text-brand-textPrimary" />
-          </button>
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110" />
+    <div className="bg-[#121212] min-h-screen text-white">
+      <div className="pt-[140px] pb-20 px-6 md:px-12 max-w-[1600px] mx-auto">
+        <div className="flex items-center gap-2 font-body text-[10px] uppercase tracking-[0.2em] text-white/60 mb-12">
+          <Link to="/" className="hover:text-[#c8ff00] transition-colors">Home</Link>
+          <ChevronRight size={10} />
+          <Link to="/shop" className="hover:text-[#c8ff00] transition-colors">Shop</Link>
+          <ChevronRight size={10} />
+          <span className="text-white/80">{product.name}</span>
         </div>
 
-        {/* Product Info */}
-        <div className="pd-info py-4">
-          <h1 className="font-display font-medium text-[36px] md:text-[44px] leading-[1.1] mb-2">{product.name}</h1>
-          <p className="font-display font-semibold text-[24px] mb-8">₹{product.price.toLocaleString()}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-start">
           
-          <p className="font-body text-[14px] leading-[1.8] text-brand-textMuted mb-10">
-            {product.desc}
-          </p>
-
-          {/* Size Selector */}
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-body font-bold text-[12px] uppercase tracking-[0.2em] text-brand-textPrimary">Select Size</span>
-              <button className="font-body text-[11px] text-brand-textPrimary font-medium underline underline-offset-4 hover:text-brand-accentColor transition-colors">Size Guide</button>
+          {/* Product Image Gallery */}
+          <div className="lg:col-span-7 space-y-6 pd-image">
+            <div className="relative aspect-[4/5] overflow-hidden bg-black flex items-center justify-center">
+              <button className="absolute top-8 right-8 w-12 h-12 glass-dark rounded-full flex items-center justify-center cursor-pointer z-10 hover:bg-[#c8ff00] hover:text-black transition-all group/heart shadow-2xl">
+                <Heart size={20} strokeWidth={1.5} className="group-hover/heart:fill-current" />
+              </button>
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-full object-cover" 
+              />
+              <div className="absolute bottom-8 left-8">
+                <span className="px-4 py-2 glass-dark border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em]">Editorial Series 01</span>
+              </div>
             </div>
-                  <div className="grid grid-cols-4 gap-3">
-                    {(product.sizes || []).map((s: { size: string; stock: number }) => (
-                      <button 
-                        key={s.size}
-                        disabled={s.stock === 0}
-                        onClick={() => setSize(s.size)}
-                        className={`py-3 border font-body text-[12px] font-bold transition-all ${
-                          size === s.size 
-                            ? 'bg-black text-white border-black' 
-                            : 'bg-white text-black border-brand-textPrimary hover:border-black'
-                        } ${s.stock === 0 ? 'opacity-30 cursor-not-allowed line-through' : ''}`}
-                      >
-                        {s.size}
-                      </button>
-                    ))}
-                  </div>
-          </div>
-
-          {/* Quantity */}
-          <div className="mb-12">
-            <span className="block font-body font-bold text-[12px] uppercase tracking-[0.2em] text-brand-textPrimary mb-4">Quantity</span>
-            <div className="flex items-center border border-gray-300 w-fit h-14 bg-white shadow-md rounded-sm">
-              <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-14 h-full flex items-center justify-center hover:bg-brand-accentColor font-black transition-colors">-</button>
-              <div className="w-14 h-full flex items-center justify-center font-body text-[14px] font-bold border-x border-gray-300 bg-white">{qty}</div>
-              <button onClick={() => setQty(qty + 1)} className="w-14 h-full flex items-center justify-center hover:bg-brand-accentColor font-black transition-colors">+</button>
+            
+            {/* Secondary Images (Simulated for UI) */}
+            <div className="grid grid-cols-2 gap-6 opacity-80">
+              <div className="aspect-square bg-white/5 overflow-hidden">
+                <img src={product.image} alt="" className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 hover:brightness-100 transition-all duration-500 cursor-zoom-in" />
+              </div>
+              <div className="aspect-square bg-white/5 overflow-hidden">
+                <img src={product.image} alt="" className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 hover:brightness-100 transition-all duration-500 cursor-zoom-in" />
+              </div>
             </div>
           </div>
 
-          {/* Add to Cart Button */}
-          <button 
-            onClick={() => {
-              addToCart({ ...product, size, quantity: qty });
-              toggleCart();
-            }}
-            className="w-full py-6 bg-black text-white font-body font-bold text-[14px] uppercase tracking-[0.4em] transition-all hover:bg-brand-accentColor hover:text-black active:scale-[0.98] shadow-xl relative overflow-hidden group mb-12"
-          >
-            <span className="relative z-10">Add to Cart — ₹{(product.price * qty).toLocaleString()}</span>
-          </button>
+          {/* Sticky Product Info */}
+          <div className="lg:col-span-5 lg:sticky lg:top-[160px] pd-info">
+            <div className="space-y-8">
+              <div>
+                <span className="inline-block text-[#c8ff00] font-body text-[11px] font-bold uppercase tracking-[0.3em] mb-4">Dripkart Exclusive</span>
+                <h1 className="font-display font-medium text-[44px] md:text-[56px] leading-[0.95] tracking-tight uppercase mb-4">
+                  {product.name}
+                </h1>
+                <div className="flex items-baseline gap-4 mt-6">
+                  <span className="font-display font-bold text-[32px]">₹{product.price.toLocaleString()}</span>
+                  <span className="font-body text-white/30 line-through text-[18px]">₹{(product.price * 1.5).toLocaleString()}</span>
+                </div>
+              </div>
 
-          {/* Details */}
-          <div className="mt-12 pt-10 border-t border-gray-200">
-            <h4 className="font-body font-bold text-[12px] uppercase tracking-[0.2em] text-brand-textPrimary mb-6">Product Specifications</h4>
-            <ul className="space-y-4 font-body text-[14px] text-brand-textPrimary font-bold">
-              {product.details.map((d: string, i: number) => (
-                <li key={i} className="flex items-center gap-3">
-                  <span className="w-2 h-2 bg-brand-accentColor flex-shrink-0"></span>
-                  {d}
-                </li>
-              ))}
-            </ul>
+              <div className="h-[1px] w-full bg-white/10"></div>
+              
+              <p className="font-body text-[15px] leading-[1.8] text-white/80">
+                {product.desc}
+              </p>
+
+              {/* Size Selector */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <span className="font-body font-bold text-[11px] uppercase tracking-[0.2em] text-white">Select Size</span>
+                  <button className="font-body text-[11px] text-[#c8ff00] border-b border-[#c8ff00]/30 pb-0.5 font-bold hover:border-[#c8ff00] transition-colors">Size Guide</button>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  {(product.sizes || []).map((s: { size: string; stock: number }) => (
+                    <button 
+                      key={s.size}
+                      disabled={s.stock === 0}
+                      onClick={() => setSize(s.size)}
+                      className={`min-w-[70px] h-[54px] border font-body text-[13px] font-bold transition-all relative ${
+                        size === s.size 
+                          ? 'bg-[#c8ff00] text-black border-[#c8ff00] neon-glow' 
+                          : 'bg-transparent text-white border-white/20 hover:border-white'
+                      } ${s.stock === 0 ? 'opacity-20 cursor-not-allowed line-through' : ''}`}
+                    >
+                      {s.size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <span className="block font-body font-bold text-[11px] uppercase tracking-[0.2em] text-white mb-4">Quantity</span>
+                <div className="flex items-center glass-dark w-fit h-14 border border-white/10 text-white">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-14 h-full flex items-center justify-center hover:text-[#d1ff00] transition-colors font-bold text-lg">-</button>
+                  <div className="w-14 h-full flex items-center justify-center font-body text-[14px] font-bold border-x border-white/10 uppercase text-white">{qty}</div>
+                  <button onClick={() => setQty(qty + 1)} className="w-14 h-full flex items-center justify-center hover:text-[#d1ff00] transition-colors font-bold text-lg">+</button>
+                </div>
+              </div>
+
+              {/* Add to Cart Button */}
+              <div className="pt-4">
+                <button 
+                  onClick={() => {
+                    addToCart({ ...product, size, quantity: qty });
+                    toggleCart();
+                  }}
+                  className="w-full h-18 bg-[#c8ff00] text-black font-body font-black text-[15px] uppercase tracking-[0.4em] transition-all hover:brightness-110 active:scale-[0.98] shadow-[0_0_30px_rgba(200,255,0,0.2)]"
+                >
+                  Confirm Drop — ₹{(product.price * qty).toLocaleString()}
+                </button>
+              </div>
+
+              {/* Specs Glass Panel */}
+              <div className="glass-dark p-8 border border-white/5 mt-12">
+                <h4 className="font-body font-bold text-[11px] uppercase tracking-[0.2em] text-[#c8ff00] mb-6">Technical Specifications</h4>
+                <div className="grid grid-cols-1 gap-4">
+                  {(product.details || []).map((d: string, i: number) => (
+                    <div key={i} className="flex items-center gap-4 py-2 border-b border-white/5 last:border-0">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#c8ff00]/50" />
+                      <span className="font-body text-[13px] text-white/80 font-medium">{d}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <Reviews />
+        <div className="flex items-center gap-6 mb-16 px-6">
+            <h2 className="font-display text-[40px] uppercase tracking-tighter text-white">Community Feedback</h2>
+            <div className="h-[1px] flex-1 bg-white/10"></div>
+          </div>
+          <div className="glass-dark p-6 md:p-12">
+            <Reviews />
+          </div>
+      </div>
     </div>
   );
 }

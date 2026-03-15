@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
-import { Upload, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { Upload, Plus, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 
 export function Admin() {
@@ -28,7 +29,9 @@ export function Admin() {
   const [images, setImages] = useState<(File | null)[]>([null, null, null, null, null]);
 
   useEffect(() => {
-    gsap.from('.admin-anim', { y: 20, opacity: 0, duration: 0.6, stagger: 0.1 });
+    // Set initial state to prevent visibility flicker
+    gsap.set('.admin-anim', { opacity: 0, y: 10 });
+    gsap.to('.admin-anim', { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power3.out' });
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -97,132 +100,202 @@ export function Admin() {
 
   if (user?.role !== 'ADMIN') {
     return (
-      <div className="min-h-screen pt-[160px] px-6 text-center">
-        <h1 className="font-display text-[32px]">Access Denied</h1>
-        <p className="font-body text-brand-textMuted mt-4">You do not have permission to view this page.</p>
+      <div className="min-h-screen bg-[#121212] pt-[160px] px-6 text-center text-white">
+        <h1 className="font-display text-[32px] tracking-tighter uppercase">Access Denied</h1>
+        <p className="font-body text-white/40 mt-4 max-w-md mx-auto">This terminal is restricted to authorized personnel. Please return to the main hub.</p>
+        <Link to="/" className="inline-block mt-8 px-8 py-3 bg-[#c8ff00] text-black font-body font-bold text-[11px] uppercase tracking-[0.2em]">Return Home</Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-[160px] pb-20 px-6 max-w-[1200px] mx-auto">
-      <div className="flex justify-between items-end mb-12 admin-anim">
+    <div className="min-h-screen bg-[#121212] text-white pt-[140px] pb-20 px-6 max-w-[1600px] mx-auto overflow-hidden">
+      {/* Dynamic Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 admin-anim">
         <div>
-          <h1 className="font-display text-[48px] md:text-[64px] leading-tight">Project Delta</h1>
-          <p className="font-body text-brand-textMuted text-[14px] uppercase tracking-[0.2em] mt-2">Product Management Portal</p>
+          <span className="text-[#c8ff00] font-body text-[11px] font-bold uppercase tracking-[0.4em] mb-4 block">System Authorization: Layer 01</span>
+          <h1 className="font-display text-[56px] md:text-[80px] leading-[0.85] tracking-tighter uppercase font-medium text-white">
+            Drip Command <span className="text-white/40 italic">Center</span>
+          </h1>
+          <div className="flex items-center gap-4 mt-8">
+            <div className="h-[2px] w-20 bg-[#d1ff00]"></div>
+            <p className="font-body text-white/60 text-[11px] uppercase tracking-[0.3em]">Authorized Session: {user?.name}</p>
+          </div>
         </div>
         {success && (
-          <div className="flex items-center gap-2 text-green-600 font-body text-[13px] animate-bounce">
-            <CheckCircle2 size={18} />
-            Product Created Successfully
+          <div className="glass-dark border border-[#c8ff00]/30 px-6 py-4 mt-8 md:mt-0 flex items-center gap-4 animate-in fade-in slide-in-from-right-10">
+            <div className="w-2 h-2 rounded-full bg-[#c8ff00] animate-pulse" />
+            <span className="font-body text-[12px] uppercase font-bold text-[#c8ff00] tracking-[0.1em]">Product Payload Uploaded Successfully</span>
           </div>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-        {/* Left: General Info */}
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+        {/* Left: Configuration Form */}
         <div className="lg:col-span-7 space-y-12 admin-anim">
-          <section>
-            <h2 className="font-display text-[24px] mb-6 border-b-2 border-brand-textPrimary pb-2 font-bold uppercase tracking-tighter">Product Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                  <label className="block font-body text-[11px] uppercase tracking-[0.2em] font-bold mb-2">Product Name</label>
-                  <input required name="name" value={formData.name} onChange={handleInputChange} placeholder="Product Name" className="w-full p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all" />
+          <section className="glass-dark p-10 border border-white/5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 font-body text-[8px] opacity-20 uppercase">Module: Core_Config</div>
+            <h2 className="font-display text-[20px] mb-10 border-b border-white/10 pb-6 font-bold uppercase tracking-tight">Technical Specifications</h2>
+            
+            <div className="grid grid-cols-1 gap-10">
+              <div className="space-y-8">
+                <div className="group">
+                  <label className="block font-body text-[10px] uppercase tracking-[0.2em] font-black mb-3 text-white/70 group-focus-within:text-[#d1ff00] transition-colors">Designation / Name</label>
+                  <input 
+                    required 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleInputChange} 
+                    placeholder="Enter product title..." 
+                    className="w-full pb-3 bg-transparent border-b border-white/20 font-display text-[24px] uppercase text-white outline-none focus:border-[#d1ff00] transition-all placeholder:text-white/10" 
+                  />
                 </div>
-                <div>
-                  <label className="block font-body text-[11px] uppercase tracking-[0.2em] font-bold mb-2">Category</label>
-                  <select name="category" value={formData.category} onChange={handleInputChange} className="w-full p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all">
-                    <option value="hoodies">Hoodies</option>
-                    <option value="tees">Tees</option>
-                    <option value="pants">Pants</option>
-                    <option value="accessories">Accessories</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="group">
+                    <label className="block font-body text-[10px] uppercase tracking-[0.2em] font-bold mb-3 text-white/50 group-focus-within:text-[#c8ff00] transition-colors">Classification</label>
+                    <select 
+                      name="category" 
+                      value={formData.category} 
+                      onChange={handleInputChange} 
+                      className="w-full pb-3 bg-transparent border-b border-white/20 font-body text-[14px] text-white outline-none focus:border-[#c8ff00] transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="hoodies" className="bg-[#121212]">Hoodies</option>
+                      <option value="tees" className="bg-[#121212]">Tees</option>
+                      <option value="pants" className="bg-[#121212]">Pants</option>
+                      <option value="accessories" className="bg-[#121212]">Accessories</option>
+                    </select>
+                  </div>
+                  <div className="group">
+                    <label className="block font-body text-[10px] uppercase tracking-[0.2em] font-bold mb-3 text-white/50 group-focus-within:text-[#c8ff00] transition-colors">Limited Edition Badge</label>
+                    <input name="badge" value={formData.badge} onChange={handleInputChange} placeholder="e.g. DROP_01" className="w-full pb-3 bg-transparent border-b border-white/20 font-body text-[14px] text-white outline-none focus:border-[#c8ff00] transition-all placeholder:text-white/10 uppercase" />
+                  </div>
+                </div>
+
+                <div className="group">
+                  <label className="block font-body text-[10px] uppercase tracking-[0.2em] font-bold mb-3 text-white/50 group-focus-within:text-[#c8ff00] transition-colors">Aesthetic Description</label>
+                  <textarea 
+                    required 
+                    name="description" 
+                    value={formData.description} 
+                    onChange={handleInputChange} 
+                    rows={4} 
+                    className="w-full p-4 glass-dark border border-white/10 font-body text-[14px] text-white/80 outline-none focus:border-[#c8ff00] resize-none transition-all placeholder:text-white/20" 
+                    placeholder="Describe the fabric, fit, and soul of this piece..." 
+                  />
                 </div>
               </div>
-              <div>
-                <label className="block font-body text-[11px] uppercase tracking-[0.2em] font-bold mb-2">Description</label>
-                <textarea required name="description" value={formData.description} onChange={handleInputChange} rows={4} className="w-full p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor resize-none transition-all" placeholder="Elaborate on the aesthetic..." />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mt-10">
-              <div>
-                <label className="block font-body text-[11px] uppercase tracking-[0.2em] font-bold mb-2">Price (₹)</label>
-                <input required name="price" type="number" value={formData.price} onChange={handleInputChange} className="w-full p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all" placeholder="1999" />
+              <div className="grid grid-cols-2 gap-8">
+                <div className="group">
+                  <label className="block font-body text-[10px] uppercase tracking-[0.2em] font-bold mb-3 text-white/50 group-focus-within:text-[#c8ff00] transition-colors">Unit Price (₹)</label>
+                  <input required name="price" type="number" value={formData.price} onChange={handleInputChange} className="w-full pb-3 bg-transparent border-b border-white/20 font-display text-[20px] text-white outline-none focus:border-[#c8ff00] transition-all" />
+                </div>
+                <div className="group">
+                  <label className="block font-body text-[10px] uppercase tracking-[0.2em] font-bold mb-3 text-white/50 group-focus-within:text-[#c8ff00] transition-colors">Base MRP (₹)</label>
+                  <input required name="mrp" type="number" value={formData.mrp} onChange={handleInputChange} className="w-full pb-3 bg-transparent border-b border-white/20 font-display text-[20px] text-white/40 outline-none focus:border-[#c8ff00] transition-all" />
+                </div>
               </div>
-              <div>
-                <label className="block font-body text-[11px] uppercase tracking-[0.2em] font-bold mb-2">MRP (₹)</label>
-                <input required name="mrp" type="number" value={formData.mrp} onChange={handleInputChange} className="w-full p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all" placeholder="2499" />
-              </div>
-              <div>
-                <label className="block font-body text-[11px] uppercase tracking-[0.2em] font-bold mb-2">Badge</label>
-                <input name="badge" value={formData.badge} onChange={handleInputChange} className="w-full p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all" placeholder="NEW / SALE / LTD" />
-              </div>
-            </div>
 
-            <div className="mt-10">
-              <label className="block font-body text-[11px] uppercase tracking-[0.2em] font-bold mb-2">Tags</label>
-              <input name="tags" value={formData.tags} onChange={handleInputChange} className="w-full p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all" placeholder="heavyweight, cotton, boxy" />
-            </div>
+              <div className="group">
+                <label className="block font-body text-[10px] uppercase tracking-[0.2em] font-bold mb-3 text-white/50 group-focus-within:text-[#c8ff00] transition-colors">Metadata Tags</label>
+                <input name="tags" value={formData.tags} onChange={handleInputChange} className="w-full pb-3 bg-transparent border-b border-white/20 font-body text-[14px] text-white outline-none focus:border-[#c8ff00] transition-all placeholder:text-white/10" placeholder="separate with commas (e.g. rare, cotton, oversized)" />
+              </div>
 
-            <div className="flex items-center gap-3 mt-10">
-              <input name="isFeatured" type="checkbox" checked={formData.isFeatured} onChange={handleInputChange} className="w-5 h-5 accent-brand-textPrimary" />
-              <label className="font-body text-[13px]">Feature this product on the index page</label>
+              <div className="flex items-center gap-4 py-4 px-6 glass-dark border border-white/5 w-fit rounded-sm group cursor-pointer">
+                <input name="isFeatured" type="checkbox" id="isFeatured" checked={formData.isFeatured} onChange={handleInputChange} className="w-4 h-4 accent-[#c8ff00] cursor-pointer" />
+                <label htmlFor="isFeatured" className="font-body text-[11px] uppercase tracking-[0.1em] font-bold cursor-pointer text-white/60 group-hover:text-white">Feature in Main Carousel</label>
+              </div>
             </div>
           </section>
 
-          <div className="track-anim bg-white p-8 md:p-12 border border-brand-textPrimary mb-12 shadow-xl">
-            <h2 className="font-display text-[24px] mb-6 border-b-2 border-brand-textPrimary pb-2 font-bold uppercase tracking-tighter">Inventory</h2>
-            <div className="space-y-4">
+          <section className="glass-dark p-10 border border-white/5">
+            <h2 className="font-display text-[20px] mb-10 border-b border-white/10 pb-6 font-bold uppercase tracking-tight">Inventory Distribution</h2>
+            <div className="space-y-6">
               {sizes.map((s, idx) => (
-                <div key={idx} className="flex gap-4 items-center">
-                  <input value={s.size} onChange={(e) => handleSizeChange(idx, 'size', e.target.value)} className="w-24 p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all" placeholder="Size" />
-                  <input type="number" value={s.stock} onChange={(e) => handleSizeChange(idx, 'stock', parseInt(e.target.value))} className="w-32 p-4 bg-white border border-brand-textPrimary font-body text-[14px] text-brand-textPrimary outline-none focus:border-brand-accentColor transition-all" placeholder="Stock" />
-                  <button type="button" onClick={() => setSizes(sizes.filter((_, i) => i !== idx))} className="p-4 text-red-400 hover:text-red-600 transition-colors">
-                    <Trash2 size={18} />
+                <div key={idx} className="flex gap-8 items-center group">
+                  <div className="flex-1">
+                    <input 
+                      value={s.size} 
+                      onChange={(e) => handleSizeChange(idx, 'size', e.target.value)} 
+                      className="w-full pb-2 bg-transparent border-b border-white/10 font-body text-[14px] font-bold uppercase text-white outline-none focus:border-[#c8ff00] transition-all" 
+                      placeholder="SIZE_CODE" 
+                    />
+                  </div>
+                  <div className="w-32">
+                    <input 
+                      type="number" 
+                      value={s.stock} 
+                      onChange={(e) => handleSizeChange(idx, 'stock', parseInt(e.target.value))} 
+                      className="w-full pb-2 bg-transparent border-b border-white/10 font-body text-[14px] text-white/60 outline-none focus:border-[#c8ff00] transition-all" 
+                      placeholder="STOCK_UNIT" 
+                    />
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => setSizes(sizes.filter((_, i) => i !== idx))} 
+                    className="p-3 text-white/20 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 size={16} />
                   </button>
                 </div>
               ))}
-              <button type="button" onClick={() => setSizes([...sizes, { size: '', stock: 0 }])} className="flex items-center gap-2 font-body text-[12px] uppercase tracking-[0.2em] font-bold hover:text-brand-accentColor transition-colors mt-6 bg-black text-white px-6 py-3 w-fit shadow-lg">
-                <Plus size={16} /> Add Size Variant
+              <button 
+                type="button" 
+                onClick={() => setSizes([...sizes, { size: '', stock: 0 }])} 
+                className="flex items-center gap-3 font-body text-[11px] uppercase tracking-[0.2em] font-black text-[#c8ff00] hover:brightness-125 transition-all mt-8"
+              >
+                <Plus size={14} /> Add Inventory Instance
               </button>
             </div>
-          </div>
+          </section>
         </div>
 
-        {/* Right: Media & Submit */}
+        {/* Right: Media Manifest & Authorization */}
         <div className="lg:col-span-5 space-y-12 admin-anim">
-          <section className="bg-white p-8 md:p-12 border border-brand-textPrimary shadow-xl">
-            <h2 className="font-display text-[24px] mb-8 border-b-2 border-brand-textPrimary pb-2 font-bold uppercase tracking-tighter">Images</h2>
-            <div className="grid grid-cols-2 gap-6">
+          <section className="glass-dark p-10 border border-white/5">
+            <div className="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
+              <h2 className="font-display text-[20px] font-bold uppercase tracking-tight">Media Assets</h2>
+              <span className="font-body text-[10px] text-white/30 uppercase tracking-[0.2em]">Slots Available: 5</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               {images.map((img, idx) => (
-                <div key={idx} className={`relative aspect-[3/4] border ${img ? 'border-brand-textPrimary' : 'border-dashed border-brand-textPrimary'} group transition-all`}>
+                <div key={idx} className={`relative aspect-[3/4] glass border ${img ? 'border-[#c8ff00]/30 glow shadow-[0_0_20px_rgba(200,255,0,0.05)]' : 'border-dashed border-white/10'} overflow-hidden group transition-all`}>
                   {img ? (
-                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${URL.createObjectURL(img)})` }}>
-                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-80 transition-opacity flex items-center justify-center">
-                        <button type="button" onClick={() => handleImageChange(idx, { target: { files: null } } as any)} className="text-white hover:text-brand-accentColor transition-colors">
-                          <Trash2 size={24} />
+                    <div className="absolute inset-0">
+                      <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700" />
+                      <div className="absolute inset-0 bg-[#c8ff00]/10 mix-blend-overlay pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                        <button type="button" onClick={() => handleImageChange(idx, { target: { files: null } } as any)} className="w-12 h-12 glass-dark rounded-full flex items-center justify-center text-[#c8ff00] hover:bg-[#c8ff00] hover:text-black transition-all">
+                          <Trash2 size={20} />
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-brand-accentColor transition-colors">
-                      <Upload size={24} className="text-brand-textPrimary mb-2" strokeWidth={2} />
-                      <span className="font-body text-[11px] uppercase tracking-[0.2em] text-brand-textPrimary font-bold">Slot {idx + 1}</span>
+                    <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all">
+                      <Upload size={20} className="text-[#c8ff00] mb-3 opacity-50" strokeWidth={1.5} />
+                      <span className="font-body text-[9px] uppercase tracking-[0.3em] text-white/30 font-bold">Upload_0{idx + 1}</span>
                       <input type="file" accept="image/*" onChange={(e) => handleImageChange(idx, e)} className="hidden" />
                     </label>
                   )}
-                  {idx === 0 && <span className="absolute top-0 right-0 px-3 py-1 bg-black text-brand-accentColor text-[10px] uppercase tracking-[0.2em] font-bold font-body">Cover</span>}
+                  {idx === 0 && <span className="absolute top-4 left-4 px-3 py-1 glass-dark text-[#c8ff00] text-[8px] uppercase tracking-[0.3em] font-bold font-body border border-[#c8ff00]/30">Primary</span>}
                 </div>
               ))}
             </div>
-            <p className="font-body text-[12px] text-brand-textPrimary mt-6 italic font-bold">Standard Portrait: 1200x1600.</p>
           </section>
 
-          <button type="submit" disabled={isLoading} className="w-full py-6 bg-black text-white font-body font-bold text-[14px] uppercase tracking-[0.3em] hover:bg-brand-accentColor hover:text-black transition-all shadow-xl">
-            {isLoading ? 'Saving Product...' : 'Create Product'}
-          </button>
+          <div className="space-y-6">
+            <button 
+              type="submit" 
+              disabled={isLoading} 
+              className="w-full py-7 bg-[#c8ff00] text-black font-body font-black text-[14px] uppercase tracking-[0.5em] hover:brightness-110 transition-all shadow-[0_0_40px_rgba(200,255,0,0.1)] active:scale-[0.99] disabled:opacity-50"
+            >
+              {isLoading ? 'Authorizing Payload...' : 'Authorize Dispatch'}
+            </button>
+            <p className="text-center font-body text-[9px] text-white/40 uppercase tracking-[0.3em] leading-relaxed">
+              Dispatching this product will broadcast it to the global shop registry.<br />Ensure all technical specifications are validated.
+            </p>
+          </div>
         </div>
       </form>
     </div>

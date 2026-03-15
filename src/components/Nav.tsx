@@ -34,10 +34,14 @@ export function Nav() {
     return () => st.kill();
   }, [isHome]);
 
+  const isDarkPage = location.pathname.startsWith('/shop/') || location.pathname === '/admin' || location.pathname === '/collections';
+
   const navClasses = `fixed top-0 left-0 w-full z-40 px-6 md:px-12 py-4 flex items-center justify-between transition-all duration-500 ${
-    isHome && !isScrolled
-      ? 'bg-transparent text-white'
-      : 'bg-white text-brand-textPrimary shadow-md'
+    isDarkPage 
+      ? 'bg-black/80 backdrop-blur-lg text-white border-b border-white/10'
+      : isHome && !isScrolled
+        ? 'bg-transparent text-white'
+        : 'bg-white text-brand-textPrimary shadow-md'
   }`;
 
   return (
