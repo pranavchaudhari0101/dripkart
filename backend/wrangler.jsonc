@@ -7,8 +7,7 @@
     "nodejs_compat"
   ],
   "vars": {
-    "FRONTEND_URL": "http://localhost:5173",
-    "PHONEPE_ENV": "production"
+    "BACKEND_URL": "REPLACE_IN_DASHBOARD"
   },
   "kv_namespaces": [
     {

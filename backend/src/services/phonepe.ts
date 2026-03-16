@@ -6,6 +6,10 @@ async function sha256Hex(data: string): Promise<string> {
 }
 
 export async function initiatePayment(orderId: string, amount: number, mobile: string, env: Env) {
+  if (!env.BACKEND_URL || !env.FRONTEND_URL) {
+    throw new Error('BACKEND_URL or FRONTEND_URL is not configured in environment variables');
+  }
+
   const payload = {
     merchantId: env.PHONEPE_MERCHANT_ID,
     merchantTransactionId: orderId,
@@ -22,8 +26,13 @@ export async function initiatePayment(orderId: string, amount: number, mobile: s
     + '###' + env.PHONEPE_SALT_INDEX
 
   const apiUrl = env.PHONEPE_ENV === 'production' 
-    ? 'https://api.phonepe.com/apis/hermes/pg/v1/pay'
-    : 'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay'
+    : 'https://api-preprod.phonepe.com/apis/pg-sandbox/pg-sandbox/pg/v1/pay'
+
+  console.log(`[DEBUG] Initiating PhonePe Payment for ${orderId}:`, {
+    apiUrl,
+    redirectUrl: payload.redirectUrl,
+    callbackUrl: payload.callbackUrl
+  });
 
   const res = await fetch(apiUrl, {
     method: 'POST',

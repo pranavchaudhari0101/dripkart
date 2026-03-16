@@ -91,7 +91,7 @@ router.post('/create', async (c) => {
 
   } catch (err: any) {
     console.error('Order Creation Error:', err.message, err.stack)
-    return c.json({ error: 'Order creation failed', details: err.message }, 500)
+    return c.json({ error: `Order creation failed: ${err.message}`, details: err.stack }, 500)
   }
 })
 
