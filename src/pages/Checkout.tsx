@@ -9,6 +9,7 @@ export function Checkout() {
   const { cartItems, cartTotal } = useCart();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'phonepe' | 'COD'>('phonepe');
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export function Checkout() {
             size: item.size,
             quantity: item.quantity
           })),
-          paymentMethod: 'phonepe'
+          paymentMethod
         };
 
         const res = await api.post('/orders/create', payload);
@@ -157,6 +158,28 @@ export function Checkout() {
                         <p className="font-body text-[16px] leading-relaxed font-bold text-gray-900">{formData.address}, {formData.city}</p>
                         <p className="font-body text-[16px] font-black mt-2 text-gray-900">PIN: {formData.pincode}</p>
                      </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="font-body text-[11px] uppercase tracking-[0.2em] text-gray-500 font-bold mb-4">Payment Method:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <button 
+                        type="button"
+                        onClick={() => setPaymentMethod('phonepe')}
+                        className={`p-6 border rounded-sm flex flex-col items-start gap-2 transition-all ${paymentMethod === 'phonepe' ? 'border-[#c8ff00] bg-[#c8ff00]/5 ring-1 ring-[#c8ff00]' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <span className="font-body text-[13px] font-black uppercase tracking-wider">Pay Online</span>
+                        <span className="font-body text-[10px] text-gray-500 uppercase">PhonePe Gateway</span>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setPaymentMethod('COD')}
+                        className={`p-6 border rounded-sm flex flex-col items-start gap-2 transition-all ${paymentMethod === 'COD' ? 'border-[#c8ff00] bg-[#c8ff00]/5 ring-1 ring-[#c8ff00]' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <span className="font-body text-[13px] font-black uppercase tracking-wider">Cash on Delivery</span>
+                        <span className="font-body text-[10px] text-gray-500 uppercase text-left">Pay when you receive the order</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
