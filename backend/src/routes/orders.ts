@@ -73,8 +73,9 @@ router.post('/create', async (c) => {
             eq(productVariants.id, variantId),
             gte(productVariants.stock, item.quantity) // Safety condition
           ))
+          .returning({ id: productVariants.id })
         
-        if (updateRes.rowCount === 0) {
+        if (updateRes.length === 0) {
           throw new Error(`Insufficient stock for variant ${variantId} during final update`)
         }
       }

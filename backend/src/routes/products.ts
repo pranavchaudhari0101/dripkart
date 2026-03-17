@@ -22,29 +22,33 @@ router.get('/', async (c) => {
   if (isFeatured) {
     const featuredResults = await query.where(and(eq(products.isFeatured, true), eq(products.isActive, true))).orderBy(desc(products.createdAt)).limit(20)
     
-    const productsWithImages = await Promise.all(featuredResults.map(async (p) => {
+    const productsWithData = await Promise.all(featuredResults.map(async (p) => {
       const images = await db.select().from(productImages)
         .where(and(eq(productImages.productId, p.id), eq(productImages.isPrimary, true)))
         .limit(1)
-      return { ...p, image: images[0]?.url || null }
+      const variants = await db.select().from(productVariants)
+        .where(eq(productVariants.productId, p.id))
+      return { ...p, image: images[0]?.url || null, variants }
     }))
     
-    await c.env.CACHE.put(cacheKey, JSON.stringify(productsWithImages), { expirationTtl: 300 })
-    return c.json(productsWithImages)
+    await c.env.CACHE.put(cacheKey, JSON.stringify(productsWithData), { expirationTtl: 300 })
+    return c.json(productsWithData)
   }
 
   const results = await query.where(eq(products.isActive, true)).orderBy(desc(products.createdAt)).limit(20)
 
-  // Attach primary image for grid display
-  const productsWithImages = await Promise.all(results.map(async (p) => {
+  // Attach primary image and sizes for grid display
+  const productsWithData = await Promise.all(results.map(async (p) => {
     const images = await db.select().from(productImages)
       .where(and(eq(productImages.productId, p.id), eq(productImages.isPrimary, true)))
       .limit(1)
-    return { ...p, image: images[0]?.url || null }
+    const variants = await db.select().from(productVariants)
+      .where(eq(productVariants.productId, p.id))
+    return { ...p, image: images[0]?.url || null, variants }
   }))
 
-  await c.env.CACHE.put(cacheKey, JSON.stringify(productsWithImages), { expirationTtl: 300 })
-  return c.json(productsWithImages)
+  await c.env.CACHE.put(cacheKey, JSON.stringify(productsWithData), { expirationTtl: 300 })
+  return c.json(productsWithData)
 })
 
 // Public Route: Get single product detail by slug

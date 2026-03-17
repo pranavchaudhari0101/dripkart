@@ -85,13 +85,19 @@ export function ProductGrid() {
                 className="absolute bottom-0 left-0 w-full bg-brand-textPrimary text-white font-body font-medium text-[10px] uppercase tracking-[0.12em] p-3.5 text-center translate-y-full transition-all duration-350 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-[2] cursor-pointer group-hover:translate-y-0 hover:!bg-brand-accentColor hover:!text-brand-textPrimary"
                 onClick={(e) => {
                   e.stopPropagation();
-                    addToCart({
-                      id: p.id,
-                      name: p.name,
-                      price: Number(p.price || 0),
-                      image: p.image,
-                      size: 'M'
-                    }, 1);
+                  // Dynamic size selection: pick first available size or default
+                  const selectedSize = p.variants && p.variants.length > 0 
+                    ? p.variants.find((v: any) => v.stock > 0)?.size || p.variants[0].size 
+                    : 'M';
+
+                  const price = Number(p.price);
+                  addToCart({
+                    id: p.id,
+                    name: p.name,
+                    price: Number.isFinite(price) ? price : 0,
+                    image: p.image,
+                    size: selectedSize
+                  }, 1);
                   toggleCart();
                 }}
               >
