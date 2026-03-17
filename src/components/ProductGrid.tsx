@@ -5,19 +5,16 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '../context/CartContext';
 
-gsap.registerPlugin(ScrollTrigger);
+import { useProducts } from '../hooks/useProducts';
 
-const products = [
-  { id: 'hoodie', name: 'Mens Premium Oversized Hoodie', price: '₹1,299', image: '/hoodie.png', badge: 'Low Stock', badgeType: 'white' },
-  { id: 'cargo', name: 'Mens Cargo Shirt — Cream', price: '₹1,099', image: '/cargo-shirt.png', badge: 'Popular', badgeType: 'accent' },
-  { id: 'drop', name: 'Premium Urban Drop Tee', price: '₹799', image: '/drop-tee.png', badge: 'Best Seller', badgeType: 'white' },
-  { id: 'zipup', name: 'Mens Zip-Up Hoodie — Slate', price: '₹1,499', image: '/zipup-hoodie.png', badge: 'Best Seller', badgeType: 'white' }
-];
+gsap.registerPlugin(ScrollTrigger);
 
 export function ProductGrid() {
   const sectionRef = useRef<HTMLElement>(null);
   const navigate = useNavigate();
   const { addToCart, toggleCart } = useCart();
+
+  const { data: products = [] } = useProducts(true);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -91,7 +88,7 @@ export function ProductGrid() {
                     addToCart({
                       id: p.id,
                       name: p.name,
-                      price: parseInt(p.price.replace(/[^\d]/g, '')),
+                      price: p.price,
                       image: p.image,
                       size: 'M'
                     }, 1);
@@ -104,7 +101,7 @@ export function ProductGrid() {
             
             <div className="pt-3.5 px-1 pb-2">
               <p className="font-body font-normal text-[12px] text-brand-textPrimary mb-1">{p.name}</p>
-              <p className="font-display font-semibold text-[15px] text-brand-textPrimary">{p.price}</p>
+              <p className="font-display font-semibold text-[15px] text-brand-textPrimary">₹{p.price.toLocaleString()}</p>
             </div>
           </div>
         ))}

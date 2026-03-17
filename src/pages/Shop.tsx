@@ -1,37 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { useProducts } from '../hooks/useProducts';
 import { useCart } from '../context/CartContext';
 import { Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const ALL_PRODUCTS = [
-  { id: 'hoodie', name: 'Mens Premium Oversized Hoodie', price: 1299, image: '/hoodie.png', badge: 'Low Stock', badgeType: 'white' },
-  { id: 'cargo', name: 'Mens Cargo Shirt — Cream', price: 1099, image: '/cargo-shirt.png', badge: 'Popular', badgeType: 'accent' },
-  { id: 'drop', name: 'Premium Urban Drop Tee', price: 799, image: '/drop-tee.png', badge: 'Best Seller', badgeType: 'white' },
-  { id: 'zipup', name: 'Mens Zip-Up Hoodie — Slate', price: 1499, image: '/zipup-hoodie.png', badge: 'Best Seller', badgeType: 'white' },
-  // Adding duplicates just to fill out the shop page grid
-  { id: 'hoodie-2', name: 'Womens Crop Hoodie — Olive', price: 1199, image: '/hoodie.png', badge: 'New', badgeType: 'accent' },
-  { id: 'cargo-2', name: 'Mens Utility Shorts — Khaki', price: 899, image: '/cargo-shirt.png' },
-  { id: 'drop-2', name: 'Signature Basic Tee — Black', price: 699, image: '/drop-tee.png' },
-  { id: 'zipup-2', name: 'Heavyweight Zip-Up — Ash', price: 1599, image: '/zipup-hoodie.png' }
-];
 
 export function Shop() {
   const { addToCart } = useCart();
   const gridRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState('All');
 
-  // Fetch real data from Hono Backend API
-  const { data: products = ALL_PRODUCTS } = useQuery({
-    queryKey: ['products'],
-    queryFn: async () => {
-      const res = await api.get('/products');
-      return res.data;
-    },
-    initialData: ALL_PRODUCTS, // Fallback to mockup data conceptually while DB is empty
-  });
+  const { data: products = [] } = useProducts();
 
   useEffect(() => {
     // Scroll to top when page mounts

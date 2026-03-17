@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { getDb } from '../db'
-import { orders } from '../db/schema'
+import { orders, carts, cartItems } from '../db/schema'
 import { eq } from 'drizzle-orm'
 import { verifyCallback } from '../services/phonepe'
 import { processShiprocketOrder } from '../utils/shiprocketHelper'
@@ -24,9 +24,25 @@ router.post('/phonepe/callback', async (c) => {
     const transactionId = payload.data.transactionId
     
     const db = getDb(c.env.DATABASE_URL)
-    await db.update(orders)
+    
+    // Update Order Status
+    const updatedOrder = await db.update(orders)
       .set({ paymentStatus: 'PAID', gatewayTxnId: transactionId, updatedAt: new Date() })
       .where(eq(orders.id, orderId))
+      .returning({ userId: orders.userId })
+
+    // Clear User Cart after successful payment
+    if (updatedOrder.length > 0) {
+      try {
+        const userId = updatedOrder[0].userId
+        const cartRes = await db.select().from(carts).where(eq(carts.userId, userId)).limit(1)
+        if (cartRes.length > 0) {
+          await db.delete(cartItems).where(eq(cartItems.cartId, cartRes[0].id))
+        }
+      } catch (cartErr: any) {
+        console.error('Failed to clear cart during callback:', cartErr.message)
+      }
+    }
 
     // Trigger Shiprocket
     try {

@@ -19,64 +19,64 @@ router.post('/create', async (c) => {
   const orderId = `ord_${uuid}`
 
   try {
-    let totalAmount = 0
-    const orderItemValues = []
+    const result = await db.transaction(async (tx) => {
+      let totalAmount = 0
+      const orderItemsToInsert = []
 
-    // 1. Verify items and stock
-    for (const item of items) {
-      const productRes = await db.select().from(products)
-        .where(eq(products.id, item.productId)).limit(1)
-      const product = productRes[0]
+      // 1. Verify items and stock
+      for (const item of items) {
+        const productRes = await tx.select().from(products)
+          .where(eq(products.id, item.productId)).limit(1)
+        const product = productRes[0]
 
-      const variantRes = await db.select().from(productVariants)
-        .where(and(eq(productVariants.productId, item.productId), eq(productVariants.size, item.size)))
-        .limit(1)
-      const variant = variantRes[0]
+        const variantRes = await tx.select().from(productVariants)
+          .where(and(eq(productVariants.productId, item.productId), eq(productVariants.size, item.size)))
+          .limit(1)
+        const variant = variantRes[0]
 
-      if (!product || !variant) throw new Error(`Product or variant not found for ${item.productId}`)
-      if (variant.stock < item.quantity) throw new Error(`Insufficient stock for ${product.name} (Size: ${item.size})`)
+        if (!product || !variant) throw new Error(`Product or variant not found for ${item.productId}`)
+        if (variant.stock < item.quantity) throw new Error(`Insufficient stock for ${product.name} (Size: ${item.size})`)
 
-      totalAmount += product.price * item.quantity
-      orderItemValues.push({
-        id: `oi_${crypto.randomUUID()}`,
-        orderId,
-        productId: item.productId,
-        size: item.size,
-        quantity: item.quantity,
-        price: product.price,
-        variantId: variant.id // Store for update
+        totalAmount += product.price * item.quantity
+        orderItemsToInsert.push({
+          id: `oi_${crypto.randomUUID()}`,
+          orderId,
+          productId: item.productId,
+          size: item.size,
+          quantity: item.quantity,
+          price: product.price,
+          variantId: variant.id
+        })
+      }
+
+      const isCod = paymentMethod === 'COD'
+
+      // 2. Create Order
+      await tx.insert(orders).values({
+        id: orderId,
+        userId: user.id,
+        totalAmount,
+        finalAmount: totalAmount,
+        paymentStatus: 'PENDING',
+        paymentGateway: isCod ? 'cod' : 'phonepe',
+        shippingAddress: address
       })
-    }
 
-    const isCod = paymentMethod === 'COD'
+      // 3. Insert Items and Update Stock in transaction
+      for (const item of orderItemsToInsert) {
+        const { variantId, ...values } = item
+        await tx.insert(orderItems).values(values)
+        await tx.update(productVariants)
+          .set({ stock: sql`${productVariants.stock} - ${item.quantity}` })
+          .where(eq(productVariants.id, variantId))
+      }
 
-    // 2. Create Order
-    await db.insert(orders).values({
-      id: orderId,
-      userId: user.id,
-      totalAmount,
-      finalAmount: totalAmount,
-      paymentStatus: 'PENDING',
-      paymentGateway: isCod ? 'cod' : 'phonepe',
-      shippingAddress: address
+      return { totalAmount, isCod }
     })
 
-    // 3. Insert Items and Update Stock Sequentially (Since transactions are buggy here)
-    for (const oi of orderItemValues) {
-      const { variantId, ...values } = oi as any
-      await db.insert(orderItems).values(values)
-      await db.update(productVariants)
-        .set({ stock: sql`${productVariants.stock} - ${oi.quantity}` })
-        .where(eq(productVariants.id, variantId))
-    }
+    const { totalAmount, isCod } = result
 
-    // 4. Clear Cart
-    const cartRes = await db.select().from(carts).where(eq(carts.userId, user.id)).limit(1)
-    if (cartRes.length > 0) {
-      await db.delete(cartItems).where(eq(cartItems.cartId, cartRes[0].id))
-    }
-
-    // 5. Initiate Payment
+    // 4. Initiate Payment / Shipping Trigger
     if (isCod) {
       try {
         await processShiprocketOrder(orderId, c.env)
@@ -91,7 +91,7 @@ router.post('/create', async (c) => {
 
   } catch (err: any) {
     console.error('Order Creation Error:', err.message, err.stack)
-    return c.json({ error: `Order creation failed: ${err.message}`, details: err.stack }, 500)
+    return c.json({ error: `Order creation failed: ${err.message}` }, 500)
   }
 })
 
