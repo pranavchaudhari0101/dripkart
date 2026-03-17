@@ -21,7 +21,10 @@ export function useProducts(featured?: boolean) {
       const res = await api.get('/products', {
         params: { featured }
       });
-      return res.data;
+      return res.data.map((p: any) => ({
+        ...p,
+        price: Number(p.price || 0)
+      }));
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

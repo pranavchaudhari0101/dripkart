@@ -88,7 +88,7 @@ export function ProductGrid() {
                     addToCart({
                       id: p.id,
                       name: p.name,
-                      price: p.price,
+                      price: Number(p.price || 0),
                       image: p.image,
                       size: 'M'
                     }, 1);
@@ -101,7 +101,7 @@ export function ProductGrid() {
             
             <div className="pt-3.5 px-1 pb-2">
               <p className="font-body font-normal text-[12px] text-brand-textPrimary mb-1">{p.name}</p>
-              <p className="font-display font-semibold text-[15px] text-brand-textPrimary">₹{p.price.toLocaleString()}</p>
+              <p className="font-display font-semibold text-[15px] text-brand-textPrimary">₹{Number(p.price || 0).toLocaleString('en-IN')}</p>
             </div>
           </div>
         ))}

@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { getDb } from '../db'
 import { orders, carts, cartItems } from '../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, ne, and } from 'drizzle-orm'
 import { verifyCallback } from '../services/phonepe'
 import { processShiprocketOrder } from '../utils/shiprocketHelper'
 import type { Env } from '../types/env'
@@ -25,10 +25,13 @@ router.post('/phonepe/callback', async (c) => {
     
     const db = getDb(c.env.DATABASE_URL)
     
-    // Update Order Status
+    // Update Order Status only if it's not already PAID
     const updatedOrder = await db.update(orders)
       .set({ paymentStatus: 'PAID', gatewayTxnId: transactionId, updatedAt: new Date() })
-      .where(eq(orders.id, orderId))
+      .where(and(
+        eq(orders.id, orderId),
+        ne(orders.paymentStatus, 'PAID')
+      ))
       .returning({ userId: orders.userId })
 
     // Clear User Cart after successful payment

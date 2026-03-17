@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { getDb } from '../db'
 import { orders, orderItems, products, productVariants, cartItems, carts } from '../db/schema'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq, and, sql, gte } from 'drizzle-orm'
 import { authMiddleware } from '../middleware/auth'
 import { initiatePayment } from '../services/phonepe'
 import { processShiprocketOrder } from '../utils/shiprocketHelper'
@@ -66,9 +66,17 @@ router.post('/create', async (c) => {
       for (const item of orderItemsToInsert) {
         const { variantId, ...values } = item
         await tx.insert(orderItems).values(values)
-        await tx.update(productVariants)
+        
+        const updateRes = await tx.update(productVariants)
           .set({ stock: sql`${productVariants.stock} - ${item.quantity}` })
-          .where(eq(productVariants.id, variantId))
+          .where(and(
+            eq(productVariants.id, variantId),
+            gte(productVariants.stock, item.quantity) // Safety condition
+          ))
+        
+        if (updateRes.rowCount === 0) {
+          throw new Error(`Insufficient stock for variant ${variantId} during final update`)
+        }
       }
 
       return { totalAmount, isCod }
