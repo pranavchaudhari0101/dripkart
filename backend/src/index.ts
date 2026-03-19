@@ -13,14 +13,21 @@ import adminRoutes from './routes/admin'
 const app = new Hono<{ Bindings: Env }>()
 
 // Global Middleware
-app.use('/*', async (c, next) => {
-  const corsMiddleware = cors({
-    origin: c.env.FRONTEND_URL || 'http://localhost:5173',
+app.use('*', async (c, next) => {
+  const corsHandler = cors({
+    origin: (origin) => {
+      // Allow the configured frontend URL
+      if (origin === c.env.FRONTEND_URL) return origin;
+      // Also allow the specific delta URL for now if it's different
+      if (origin === 'https://dripkart-delta.vercel.app') return origin;
+      // Default fallback for development
+      return origin?.includes('localhost') || origin?.includes('127.0.0.1') ? origin : c.env.FRONTEND_URL || 'http://localhost:5173';
+    },
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   })
-  return corsMiddleware(c, next)
+  return corsHandler(c, next)
 })
 
 // Healthcheck
