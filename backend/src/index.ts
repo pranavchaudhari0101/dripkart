@@ -38,7 +38,11 @@ app.route('/api/shipping', shippingRoutes)
 // Expose router to Cloudflare
 app.onError((err, c) => {
   console.error(`[GLOBAL ERROR] ${c.req.method} ${c.req.url}`, err)
-  return c.text(`Internal Server Error: ${err.message}`, 500)
+  return c.json({ 
+    error: 'Internal Server Error', 
+    message: err.message,
+    stack: c.env.NODE_ENV === 'development' ? err.stack : undefined
+  }, 500)
 })
 
 export default app

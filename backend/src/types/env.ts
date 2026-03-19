@@ -19,4 +19,5 @@ export interface Env {
   PHONEPE_ENV: 'sandbox' | 'production'
   BACKEND_URL: string
   DEV_SECRET: string
+  NODE_ENV?: string
 }

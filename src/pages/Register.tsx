@@ -41,7 +41,20 @@ export function Register() {
       login(res.data.user, res.data.token);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create account');
+      console.error('Registration error:', err);
+      const errorData = err.response?.data;
+      if (typeof errorData === 'string') {
+        setError(errorData);
+      } else if (errorData?.error?.issues) {
+        // Handle Zod validation errors
+        setError(errorData.error.issues[0].message);
+      } else if (errorData?.error) {
+        setError(errorData.error);
+      } else if (errorData?.message) {
+        setError(errorData.message);
+      } else {
+        setError('Failed to create account. Please check your connection.');
+      }
     } finally {
       setIsLoading(false);
     }

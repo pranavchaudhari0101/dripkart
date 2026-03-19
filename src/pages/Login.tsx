@@ -33,7 +33,17 @@ export function Login() {
       login(res.data.user, res.data.token);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to login');
+      console.error('Login error:', err);
+      const errorData = err.response?.data;
+      if (typeof errorData === 'string') {
+        setError(errorData);
+      } else if (errorData?.error) {
+        setError(errorData.error);
+      } else if (errorData?.message) {
+        setError(errorData.message);
+      } else {
+        setError('Failed to login. Please check your credentials or connection.');
+      }
     } finally {
       setIsLoading(false);
     }
