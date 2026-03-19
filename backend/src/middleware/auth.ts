@@ -29,9 +29,18 @@ export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: Varia
 
 export const adminOnlyMiddleware = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
   const user = c.get('user')
+  console.log('[ADMIN_ONLY_MIDDLEWARE] User from context:', JSON.stringify(user));
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
+    console.warn('[ADMIN_ONLY_MIDDLEWARE] No user in context');
     return c.json({ error: 'Forbidden: Admin access required' }, 403)
   }
+
+  if (user.role !== 'ADMIN') {
+    console.warn(`[ADMIN_ONLY_MIDDLEWARE] Role mismatch. Expected ADMIN, got: ${user.role}`);
+    return c.json({ error: 'Forbidden: Admin access required' }, 403)
+  }
+  
+  console.log('[ADMIN_ONLY_MIDDLEWARE] Access granted');
   await next()
 })
