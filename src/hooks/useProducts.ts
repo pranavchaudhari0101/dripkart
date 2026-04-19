@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { MOCK_PRODUCTS } from '../lib/mockData';
 
 export interface Product {
   id: string;
@@ -19,16 +20,31 @@ export function useProducts(featured?: boolean) {
   return useQuery<Product[]>({
     queryKey: ['products', { featured }],
     queryFn: async () => {
-      const res = await api.get('/products', {
-        params: { featured }
-      });
-      return res.data.map((p: any) => {
-        const price = Number(p.price);
-        return {
-          ...p,
-          price: Number.isFinite(price) ? price : 0
-        };
-      });
+      try {
+        const res = await api.get('/products', {
+          params: { featured }
+        });
+        
+        if (!res.data || res.data.length === 0) {
+          throw new Error('No products found');
+        }
+
+        return res.data.map((p: any) => {
+          const price = Number(p.price);
+          return {
+            ...p,
+            price: Number.isFinite(price) ? price : 0
+          };
+        });
+      } catch (error) {
+        console.warn('Failed to fetch products, falling back to mock data:', error);
+        
+        // Filter mock products if "featured" is requested
+        if (featured) {
+          return MOCK_PRODUCTS.filter(p => p.isFeatured);
+        }
+        return MOCK_PRODUCTS;
+      }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
