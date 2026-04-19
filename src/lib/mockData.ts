@@ -1,4 +1,4 @@
-import { Product } from '../hooks/useProducts';
+import type { Product } from '../hooks/useProducts';
 
 export const MOCK_PRODUCTS: Product[] = [
   { 
