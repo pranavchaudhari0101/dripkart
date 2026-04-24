@@ -18,7 +18,8 @@ app.use('*', async (c, next) => {
     origin: (origin) => {
       // Allow the configured frontend URL
       if (origin === c.env.FRONTEND_URL) return origin;
-      // Also allow the specific delta URL for now if it's different
+      // Allow known Vercel deployment URLs
+      if (origin === 'https://dripkarts.vercel.app') return origin;
       if (origin === 'https://dripkart-delta.vercel.app') return origin;
       // Default fallback for development
       return origin?.includes('localhost') || origin?.includes('127.0.0.1') ? origin : c.env.FRONTEND_URL || 'http://localhost:5173';
