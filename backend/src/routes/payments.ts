@@ -3,7 +3,6 @@ import { getDb } from '../db'
 import { orders, carts, cartItems } from '../db/schema'
 import { eq, ne, and } from 'drizzle-orm'
 import { verifyCallback } from '../services/phonepe'
-import { processShiprocketOrder } from '../utils/shiprocketHelper'
 import type { Env } from '../types/env'
 
 const router = new Hono<{ Bindings: Env }>()
@@ -47,13 +46,8 @@ router.post('/phonepe/callback', async (c) => {
       }
     }
 
-    // Trigger Shiprocket
-    try {
-      await processShiprocketOrder(orderId, c.env)
-    } catch (err: any) {
-      console.error('Shiprocket Trigger Error:', err.message)
-      // We don't fail the webhook if shipping fails, but we should log it
-    }
+    // Shipping is now triggered manually by admin from the dashboard
+    // Order sits at deliveryStatus: PROCESSING until admin confirms
   }
   
   return c.json({ success: true })

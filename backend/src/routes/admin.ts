@@ -1,19 +1,275 @@
 import { Hono } from 'hono'
 import { getDb } from '../db'
-import { products, productImages, productVariants } from '../db/schema'
-import { eq } from 'drizzle-orm'
-import { adminOnlyMiddleware } from '../middleware/auth'
+import { products, productImages, productVariants, orders, orderItems, users } from '../db/schema'
+import { eq, desc, and, sql } from 'drizzle-orm'
+import { authMiddleware, adminOnlyMiddleware } from '../middleware/auth'
 import { uploadImage } from '../services/cloudinary'
+import { createOrder as shiprocketCreateOrder, assignCourier, generateLabel } from '../services/shiprocket'
 import type { Env } from '../types/env'
 
 const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
 
-// All routes here require Admin role
+// All routes here require Auth + Admin role
+router.use('/*', authMiddleware)
 router.use('/*', adminOnlyMiddleware)
 
 function generateSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  ORDER MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+// GET /admin/orders — List all orders (with optional filters)
+router.get('/orders', async (c) => {
+  const db = getDb(c.env.DATABASE_URL)
+  const statusFilter = c.req.query('status') // e.g. 'PAID', 'PROCESSING', 'SHIPPED'
+  const deliveryFilter = c.req.query('delivery') // e.g. 'PROCESSING', 'SHIPPED', 'DELIVERED'
+
+  let allOrders
+
+  if (deliveryFilter) {
+    allOrders = await db.select().from(orders)
+      .where(eq(orders.deliveryStatus, deliveryFilter as any))
+      .orderBy(desc(orders.createdAt))
+      .limit(100)
+  } else if (statusFilter) {
+    allOrders = await db.select().from(orders)
+      .where(eq(orders.paymentStatus, statusFilter as any))
+      .orderBy(desc(orders.createdAt))
+      .limit(100)
+  } else {
+    allOrders = await db.select().from(orders)
+      .orderBy(desc(orders.createdAt))
+      .limit(100)
+  }
+
+  // Attach customer name for each order
+  const ordersWithCustomer = await Promise.all(allOrders.map(async (order) => {
+    const userRes = await db.select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, order.userId))
+      .limit(1)
+    
+    // Count items
+    const itemCount = await db.select({ count: sql<number>`count(*)` })
+      .from(orderItems)
+      .where(eq(orderItems.orderId, order.id))
+
+    return {
+      ...order,
+      customerName: userRes[0]?.name || 'Unknown',
+      customerEmail: userRes[0]?.email || '',
+      itemCount: Number(itemCount[0]?.count || 0),
+    }
+  }))
+
+  return c.json(ordersWithCustomer)
+})
+
+// GET /admin/orders/:id — Get single order with full details
+router.get('/orders/:id', async (c) => {
+  const orderId = c.req.param('id')
+  const db = getDb(c.env.DATABASE_URL)
+
+  const orderRes = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1)
+  if (!orderRes.length) return c.json({ error: 'Order not found' }, 404)
+  const order = orderRes[0]
+
+  // Get customer info
+  const userRes = await db.select({ name: users.name, email: users.email, phone: users.phone })
+    .from(users)
+    .where(eq(users.id, order.userId))
+    .limit(1)
+
+  // Get order items with product details
+  const items = await db.select({
+    id: orderItems.id,
+    productId: orderItems.productId,
+    size: orderItems.size,
+    quantity: orderItems.quantity,
+    price: orderItems.price,
+    productName: products.name,
+    productSlug: products.slug,
+    productSku: products.sku,
+  })
+  .from(orderItems)
+  .leftJoin(products, eq(orderItems.productId, products.id))
+  .where(eq(orderItems.orderId, orderId))
+
+  // Get primary image for each item
+  const itemsWithImages = await Promise.all(items.map(async (item) => {
+    if (!item.productId) return { ...item, image: null }
+    const imgRes = await db.select({ url: productImages.url })
+      .from(productImages)
+      .where(and(eq(productImages.productId, item.productId), eq(productImages.isPrimary, true)))
+      .limit(1)
+    return { ...item, image: imgRes[0]?.url || null }
+  }))
+
+  return c.json({
+    ...order,
+    customer: userRes[0] || { name: 'Unknown', email: '', phone: '' },
+    items: itemsWithImages,
+  })
+})
+
+// PATCH /admin/orders/:id/confirm-shipping — Admin confirms & ships the order
+router.patch('/orders/:id/confirm-shipping', async (c) => {
+  const orderId = c.req.param('id')
+  const db = getDb(c.env.DATABASE_URL)
+
+  // 1. Get order
+  const orderRes = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1)
+  if (!orderRes.length) return c.json({ error: 'Order not found' }, 404)
+  const order = orderRes[0]
+
+  // 2. Validation: only allow shipping if order is in PROCESSING state
+  if (order.deliveryStatus !== 'PROCESSING') {
+    return c.json({ error: `Cannot ship order in ${order.deliveryStatus} state` }, 400)
+  }
+
+  // For online payments, require PAID status. For COD, PENDING is ok.
+  if (order.paymentGateway !== 'cod' && order.paymentStatus !== 'PAID') {
+    return c.json({ error: 'Cannot ship: payment not confirmed yet' }, 400)
+  }
+
+  try {
+    // 3. Get user & items for Shiprocket
+    const userRes = await db.select().from(users).where(eq(users.id, order.userId)).limit(1)
+    const user = userRes[0]
+
+    const itemsRes = await db.select({
+      quantity: orderItems.quantity,
+      price: orderItems.price,
+      size: orderItems.size,
+      productName: products.name,
+      sku: products.sku,
+    })
+    .from(orderItems)
+    .leftJoin(products, eq(orderItems.productId, products.id))
+    .where(eq(orderItems.orderId, orderId))
+
+    const address = order.shippingAddress as any
+
+    // 4. Create Shiprocket order
+    const shiprocketOrderData = {
+      id: order.id,
+      customer: {
+        name: address.fullName || user.name,
+        phone: address.phone || user.phone,
+        email: user.email,
+      },
+      address,
+      items: itemsRes,
+      isCOD: order.paymentGateway === 'cod',
+      finalAmount: order.finalAmount,
+    }
+
+    const srRes = await shiprocketCreateOrder(shiprocketOrderData, c.env) as any
+
+    if (!srRes.order_id) {
+      console.error('Shiprocket order creation failed:', srRes)
+      return c.json({ error: 'Shiprocket order creation failed', details: srRes }, 500)
+    }
+
+    // 5. Assign courier to get AWB
+    let awbCode = null
+    let courierName = null
+    try {
+      const shipmentId = srRes.shipment_id?.toString()
+      if (shipmentId) {
+        const courierRes = await assignCourier(shipmentId, c.env) as any
+        awbCode = courierRes?.response?.data?.awb_code || null
+        courierName = courierRes?.response?.data?.courier_name || null
+      }
+    } catch (err: any) {
+      console.error('Courier assignment failed (non-fatal):', err.message)
+    }
+
+    // 6. Update order in DB
+    await db.update(orders)
+      .set({
+        shipRocketId: srRes.order_id.toString(),
+        awbCode: awbCode,
+        courierName: courierName,
+        deliveryStatus: awbCode ? 'SHIPPED' : 'PICKUP_SCHEDULED',
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId))
+
+    return c.json({
+      success: true,
+      shipRocketId: srRes.order_id,
+      awbCode,
+      courierName,
+      deliveryStatus: awbCode ? 'SHIPPED' : 'PICKUP_SCHEDULED',
+    })
+
+  } catch (err: any) {
+    console.error('Confirm Shipping Error:', err.message, err.stack)
+    return c.json({ error: `Shipping confirmation failed: ${err.message}` }, 500)
+  }
+})
+
+// PATCH /admin/orders/:id/status — Manually override delivery status
+router.patch('/orders/:id/status', async (c) => {
+  const orderId = c.req.param('id')
+  const { deliveryStatus: newStatus } = await c.req.json()
+  const db = getDb(c.env.DATABASE_URL)
+
+  const validStatuses = [
+    'PROCESSING', 'PICKUP_SCHEDULED', 'OUT_FOR_PICKUP',
+    'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY',
+    'DELIVERED', 'RETURN_INITIATED', 'RETURNED'
+  ]
+
+  if (!validStatuses.includes(newStatus)) {
+    return c.json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` }, 400)
+  }
+
+  const updated = await db.update(orders)
+    .set({ deliveryStatus: newStatus as any, updatedAt: new Date() })
+    .where(eq(orders.id, orderId))
+    .returning({ id: orders.id })
+
+  if (!updated.length) return c.json({ error: 'Order not found' }, 404)
+
+  return c.json({ success: true, deliveryStatus: newStatus })
+})
+
+// GET /admin/orders/:id/label — Generate shipping label
+router.get('/orders/:id/label', async (c) => {
+  const orderId = c.req.param('id')
+  const db = getDb(c.env.DATABASE_URL)
+
+  const orderRes = await db.select({ shipRocketId: orders.shipRocketId, awb: orders.awbCode })
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1)
+
+  if (!orderRes.length) return c.json({ error: 'Order not found' }, 404)
+  if (!orderRes[0].shipRocketId) return c.json({ error: 'Order has not been shipped yet' }, 400)
+
+  try {
+    const labelUrl = await generateLabel(orderRes[0].shipRocketId, c.env)
+    
+    // Save label URL to order
+    await db.update(orders)
+      .set({ labelUrl: labelUrl as string })
+      .where(eq(orders.id, orderId))
+
+    return c.json({ labelUrl })
+  } catch (err: any) {
+    return c.json({ error: `Label generation failed: ${err.message}` }, 500)
+  }
+})
+
+
+// ═══════════════════════════════════════════════════════════════
+//  PRODUCT MANAGEMENT (existing)
+// ═══════════════════════════════════════════════════════════════
 
 // Upload a new product + images (multipart/form-data as per Master Prompt Part 6)
 router.post('/products', async (c) => {

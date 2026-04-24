@@ -4,7 +4,7 @@ import { orders, orderItems, products, productVariants, cartItems, carts } from 
 import { eq, and, sql, gte } from 'drizzle-orm'
 import { authMiddleware } from '../middleware/auth'
 import { initiatePayment } from '../services/phonepe'
-import { processShiprocketOrder } from '../utils/shiprocketHelper'
+
 import type { Env } from '../types/env'
 
 const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
@@ -85,13 +85,9 @@ router.post('/create', async (c) => {
 
     const { totalAmount, isCod } = result
 
-    // 4. Initiate Payment / Shipping Trigger
+    // 4. Initiate Payment (shipping is now triggered manually by admin)
     if (isCod) {
-      try {
-        await processShiprocketOrder(orderId, c.env)
-      } catch (err: any) {
-        console.error('Shiprocket COD Trigger Error:', err.message)
-      }
+      // COD: order sits at PROCESSING until admin confirms shipping
       return c.json({ success: true, orderId, paymentUrl: null })
     }
 
@@ -110,6 +106,31 @@ router.get('/', async (c) => {
   const db = getDb(c.env.DATABASE_URL)
   const userOrders = await db.select().from(orders).where(eq(orders.userId, user.id))
   return c.json(userOrders)
+})
+
+// GET /orders/:id/track — Public tracking endpoint (authenticated, user can only see own orders)
+router.get('/:id/track', async (c) => {
+  const user = c.get('user')
+  const orderId = c.req.param('id')
+  const db = getDb(c.env.DATABASE_URL)
+
+  const orderRes = await db.select({
+    id: orders.id,
+    paymentStatus: orders.paymentStatus,
+    paymentGateway: orders.paymentGateway,
+    deliveryStatus: orders.deliveryStatus,
+    awbCode: orders.awbCode,
+    courierName: orders.courierName,
+    trackingUrl: orders.trackingUrl,
+    createdAt: orders.createdAt,
+    updatedAt: orders.updatedAt,
+  })
+  .from(orders)
+  .where(and(eq(orders.id, orderId), eq(orders.userId, user.id)))
+  .limit(1)
+
+  if (!orderRes.length) return c.json({ error: 'Order not found' }, 404)
+  return c.json(orderRes[0])
 })
 
 export default router
