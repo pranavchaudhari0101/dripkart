@@ -13,7 +13,7 @@ export async function initiatePayment(orderId: string, amount: number, mobile: s
   const payload = {
     merchantId: env.PHONEPE_MERCHANT_ID,
     merchantTransactionId: orderId,
-    merchantUserId: userId,
+    merchantUserId: userId.replace(/[^a-zA-Z0-9]/g, '').substring(0, 35),
     amount: Math.round(amount * 100), // paise
     redirectUrl: `${env.FRONTEND_URL}/order-success?orderId=${orderId}`,
     redirectMode: 'REDIRECT',
