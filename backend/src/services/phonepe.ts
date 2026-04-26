@@ -17,7 +17,7 @@ export async function initiatePayment(orderId: string, amount: number, mobile: s
     redirectUrl: `${env.FRONTEND_URL}/order-success?orderId=${orderId}`,
     redirectMode: 'REDIRECT',
     callbackUrl: `${env.BACKEND_URL}/api/payments/phonepe/callback`,
-    mobileNumber: mobile,
+    mobileNumber: mobile ? mobile.replace(/\D/g, '').slice(-10) : undefined,
     paymentInstrument: { type: 'PAY_PAGE' }
   }
 

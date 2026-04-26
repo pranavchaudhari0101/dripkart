@@ -16,7 +16,7 @@ router.post('/create', async (c) => {
   const db = getDb(c.env.DATABASE_URL)
 
   const uuid = crypto.randomUUID().replace(/-/g, '')
-  const orderId = `ord_${uuid}`
+  const orderId = `ord_${uuid.substring(0, 28)}` // Max 32 chars total to safely fit PhonePe's 34 char limit
 
   try {
     let totalAmount = 0
