@@ -134,7 +134,7 @@ export function Shop() {
                       />
 
                       {/* Add to Cart — navigates to product */}
-                      <div className="absolute bottom-0 left-0 w-full bg-brand-textPrimary text-white font-body font-medium text-[10px] uppercase tracking-[0.12em] p-3 text-center translate-y-full transition-all duration-350 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-[2] group-hover:translate-y-0 hover:!bg-brand-accentColor hover:!text-brand-textPrimary pointer-events-auto">
+                      <div className="absolute bottom-0 left-0 w-full bg-brand-textPrimary text-white font-body font-medium text-[10px] uppercase tracking-[0.12em] p-3 text-center translate-y-full transition-all duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-[2] group-hover:translate-y-0 hover:!bg-brand-accentColor hover:!text-brand-textPrimary pointer-events-auto">
                         View Product →
                       </div>
                     </div>
@@ -142,9 +142,11 @@ export function Shop() {
                     <div className="pt-3 px-2 pb-4">
                       <p className="font-body font-normal text-[11px] md:text-[12px] text-brand-textPrimary mb-1 truncate">{p.name}</p>
                       <div className="flex items-baseline gap-2">
-                        <p className="font-display font-semibold text-[14px] md:text-[15px] text-brand-textPrimary">₹{p.price?.toLocaleString()}</p>
+                        <p className="font-display font-semibold text-[14px] md:text-[15px] text-brand-textPrimary">
+                          {p.price != null ? `₹${p.price.toLocaleString()}` : '—'}
+                        </p>
                         {p.mrp && p.mrp > p.price && (
-                          <p className="font-body text-[11px] text-brand-textMuted line-through">₹{p.mrp?.toLocaleString()}</p>
+                          <p className="font-body text-[11px] text-brand-textMuted line-through">₹{p.mrp.toLocaleString()}</p>
                         )}
                       </div>
                     </div>

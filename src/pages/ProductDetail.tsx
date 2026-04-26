@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useQuery } from '@tanstack/react-query';
@@ -61,7 +61,7 @@ export function ProductDetail() {
 
   const { addToCart, toggleCart } = useCart();
   
-  const sizes = parseSizes(product.sizes);
+  const sizes = React.useMemo(() => parseSizes(product.sizes), [product.sizes]);
   const [size, setSize] = useState('');
   const [qty, setQty] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -70,14 +70,24 @@ export function ProductDetail() {
 
   const images = getImages(product, '/hoodie.png');
 
+  // Reset image idx when product changes
+  useEffect(() => {
+    setActiveImageIdx(0);
+  }, [product.id, images.length]);
+
   // Set default size to first available
   useEffect(() => {
-    if (sizes.length > 0 && !size) {
+    if (sizes.length > 0) {
       const available = sizes.find(s => s.stock > 0);
-      if (available) setSize(available.size);
-      else setSize(sizes[0].size);
+      if (available && (!size || !sizes.find(s => s.size === size && s.stock > 0))) {
+        setSize(available.size);
+      } else if (!size) {
+        setSize(sizes[0].size);
+      }
+    } else {
+      setSize('');
     }
-  }, [sizes]);
+  }, [sizes, size]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -222,7 +232,7 @@ export function ProductDetail() {
                       name: product.name,
                       price: product.price,
                       image: images[0],
-                      size: size || 'M'
+                      size: size || (sizes.length > 0 ? sizes[0].size : 'M')
                     }, qty);
                     toggleCart();
                   }}

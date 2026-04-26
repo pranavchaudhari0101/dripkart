@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import gsap from 'gsap';
 
 export function Checkout() {
-  const { cartItems, cartTotal } = useCart();
+  const { cartItems, cartTotal, clearCart } = useCart();
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -15,6 +15,13 @@ export function Checkout() {
   const [error, setError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'phonepe' | 'COD'>('phonepe');
   const containerRef = useRef<HTMLDivElement>(null);
+  const timeoutIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+    };
+  }, []);
 
   // Auth check — redirect to login if not logged in
   useEffect(() => {
@@ -46,6 +53,7 @@ export function Checkout() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
     if (step < 2) {
       setStep(step + 1);
     } else {
@@ -71,18 +79,20 @@ export function Checkout() {
 
         const res = await api.post('/orders/create', payload);
         if (res.data.paymentUrl) {
+          clearCart();
           window.location.assign(res.data.paymentUrl);
           return;
         }
         // COD success
         if (res.data.orderId) {
+          clearCart();
           navigate('/order-success', { state: { orderId: res.data.orderId } });
         }
       } catch (err: any) {
         const msg = err.response?.data?.error || err.response?.data?.message || 'Order creation failed. Please try again.';
         if (err.response?.status === 401) {
           setError('Session expired. Please sign in again.');
-          setTimeout(() => navigate('/login', { state: { returnTo: '/checkout' } }), 2000);
+          timeoutIdRef.current = window.setTimeout(() => navigate('/login', { state: { returnTo: '/checkout' } }), 2000);
         } else {
           setError(msg);
         }
