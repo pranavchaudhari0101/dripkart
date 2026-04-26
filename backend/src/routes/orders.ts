@@ -87,7 +87,7 @@ router.post('/create', async (c) => {
       return c.json({ success: true, orderId, paymentUrl: null })
     }
 
-    const paymentUrl = await initiatePayment(orderId, totalAmount, address.phone, c.env)
+    const paymentUrl = await initiatePayment(orderId, totalAmount, address.phone, user.id, c.env)
     return c.json({ success: true, orderId, paymentUrl })
 
   } catch (err: any) {

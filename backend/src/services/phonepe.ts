@@ -5,7 +5,7 @@ async function sha256Hex(data: string): Promise<string> {
   return [...new Uint8Array(buffer)].map(b => b.toString(16).padStart(2,'0')).join('')
 }
 
-export async function initiatePayment(orderId: string, amount: number, mobile: string, env: Env) {
+export async function initiatePayment(orderId: string, amount: number, mobile: string, userId: string, env: Env) {
   if (!env.BACKEND_URL || !env.FRONTEND_URL) {
     throw new Error('BACKEND_URL or FRONTEND_URL is not configured in environment variables');
   }
@@ -13,6 +13,7 @@ export async function initiatePayment(orderId: string, amount: number, mobile: s
   const payload = {
     merchantId: env.PHONEPE_MERCHANT_ID,
     merchantTransactionId: orderId,
+    merchantUserId: userId,
     amount: Math.round(amount * 100), // paise
     redirectUrl: `${env.FRONTEND_URL}/order-success?orderId=${orderId}`,
     redirectMode: 'REDIRECT',
