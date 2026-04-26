@@ -19,71 +19,67 @@ router.post('/create', async (c) => {
   const orderId = `ord_${uuid}`
 
   try {
-    const result = await db.transaction(async (tx) => {
-      let totalAmount = 0
-      const orderItemsToInsert = []
+    let totalAmount = 0
+    const orderItemsToInsert = []
 
-      // 1. Verify items and stock
-      for (const item of items) {
-        const productRes = await tx.select().from(products)
-          .where(eq(products.id, item.productId)).limit(1)
-        const product = productRes[0]
+    // 1. Verify items and stock
+    for (const item of items) {
+      const productRes = await db.select().from(products)
+        .where(eq(products.id, item.productId)).limit(1)
+      const product = productRes[0]
 
-        const variantRes = await tx.select().from(productVariants)
-          .where(and(eq(productVariants.productId, item.productId), eq(productVariants.size, item.size)))
-          .limit(1)
-        const variant = variantRes[0]
+      const variantRes = await db.select().from(productVariants)
+        .where(and(eq(productVariants.productId, item.productId), eq(productVariants.size, item.size)))
+        .limit(1)
+      const variant = variantRes[0]
 
-        if (!product || !variant) throw new Error(`Product or variant not found for ${item.productId}`)
-        if (variant.stock < item.quantity) throw new Error(`Insufficient stock for ${product.name} (Size: ${item.size})`)
+      if (!product || !variant) throw new Error(`Product or variant not found for ${item.productId}`)
+      if (variant.stock < item.quantity) throw new Error(`Insufficient stock for ${product.name} (Size: ${item.size})`)
 
-        totalAmount += product.price * item.quantity
-        orderItemsToInsert.push({
-          id: `oi_${crypto.randomUUID()}`,
-          orderId,
-          productId: item.productId,
-          size: item.size,
-          quantity: item.quantity,
-          price: product.price,
-          variantId: variant.id
-        })
-      }
-
-      const isCod = paymentMethod === 'COD'
-
-      // 2. Create Order
-      await tx.insert(orders).values({
-        id: orderId,
-        userId: user.id,
-        totalAmount,
-        finalAmount: totalAmount,
-        paymentStatus: 'PENDING',
-        paymentGateway: isCod ? 'cod' : 'phonepe',
-        shippingAddress: address
+      totalAmount += product.price * item.quantity
+      orderItemsToInsert.push({
+        id: `oi_${crypto.randomUUID()}`,
+        orderId,
+        productId: item.productId,
+        size: item.size,
+        quantity: item.quantity,
+        price: product.price,
+        variantId: variant.id
       })
+    }
 
-      // 3. Insert Items and Update Stock in transaction
-      for (const item of orderItemsToInsert) {
-        const { variantId, ...values } = item
-        await tx.insert(orderItems).values(values)
-        
-        const updateRes = await tx.update(productVariants)
-          .set({ stock: sql`${productVariants.stock} - ${item.quantity}` })
-          .where(and(
-            eq(productVariants.id, variantId),
-            gte(productVariants.stock, item.quantity) // Safety condition
-          ))
-          .returning({ id: productVariants.id })
-        
-        if (updateRes.length === 0) {
-          throw new Error(`Insufficient stock for variant ${variantId} during final update`)
-        }
-      }
+    const isCod = paymentMethod === 'COD'
 
-      return { totalAmount, isCod }
+    // 2. Create Order
+    await db.insert(orders).values({
+      id: orderId,
+      userId: user.id,
+      totalAmount,
+      finalAmount: totalAmount,
+      paymentStatus: 'PENDING',
+      paymentGateway: isCod ? 'cod' : 'phonepe',
+      shippingAddress: address
     })
 
-    const { totalAmount, isCod } = result
+    // 3. Insert Items and Update Stock
+    for (const item of orderItemsToInsert) {
+      const { variantId, ...values } = item
+      await db.insert(orderItems).values(values)
+      
+      const updateRes = await db.update(productVariants)
+        .set({ stock: sql`${productVariants.stock} - ${item.quantity}` })
+        .where(and(
+          eq(productVariants.id, variantId),
+          gte(productVariants.stock, item.quantity) // Safety condition
+        ))
+        .returning({ id: productVariants.id })
+      
+      if (updateRes.length === 0) {
+        throw new Error(`Insufficient stock for variant ${variantId} during final update`)
+      }
+    }
+
+
 
     // 4. Initiate Payment (shipping is now triggered manually by admin)
     if (isCod) {

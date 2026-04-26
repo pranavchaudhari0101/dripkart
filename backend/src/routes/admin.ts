@@ -313,39 +313,38 @@ router.post('/products', async (c) => {
     return c.json({ error: 'Image upload failed', details: err.message }, 500)
   }
 
-  // Save to DB in transaction
+  // Save to DB (sequential, as neon-http lacks interactive transactions)
   try {
-    await db.transaction(async (tx) => {
-      // 1. Insert product
-      await tx.insert(products).values({
-        id: productId, name, slug, description, price, mrp, sku,
-        category, badge, tags, isFeatured
-      })
-
-      // 2. Insert images
-      if (uploadedImages.length > 0) {
-        const imageValues = uploadedImages.map((img, idx) => ({
-          id: `img_${crypto.randomUUID()}`,
-          productId,
-          url: img.url,
-          publicId: img.publicId,
-          isPrimary: idx === 0, // first image is primary
-          displayOrder: idx
-        }))
-        await tx.insert(productImages).values(imageValues)
-      }
-
-      // 3. Insert variants (sizes/stock)
-      const variantValues = Object.entries(sizes).map(([size, stock]) => ({
-        id: `var_${crypto.randomUUID()}`,
-        productId,
-        size,
-        stock
-      }))
-      if (variantValues.length > 0) {
-        await tx.insert(productVariants).values(variantValues)
-      }
+    // 1. Insert product
+    await db.insert(products).values({
+      id: productId, name, slug, description, price, mrp, sku,
+      category, badge, tags, isFeatured
     })
+
+    // 2. Insert images
+    if (uploadedImages.length > 0) {
+      const imageValues = uploadedImages.map((img, idx) => ({
+        id: `img_${crypto.randomUUID()}`,
+        productId,
+        url: img.url,
+        publicId: img.publicId,
+        isPrimary: idx === 0, // first image is primary
+        displayOrder: idx
+      }))
+      await db.insert(productImages).values(imageValues)
+    }
+
+    // 3. Insert variants (sizes/stock)
+    const variantValues = Object.entries(sizes).map(([size, stock]) => ({
+      id: `var_${crypto.randomUUID()}`,
+      productId,
+      size,
+      stock: stock as number
+    }))
+    
+    if (variantValues.length > 0) {
+      await db.insert(productVariants).values(variantValues)
+    }
 
     // Invalidate KV cache
     await c.env.CACHE.delete('products:all')
