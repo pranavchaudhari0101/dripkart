@@ -4,7 +4,6 @@ import { Search, User, ShoppingBag, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '../context/CartContext';
-import { useAuthStore } from '../store/authStore';
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -16,7 +15,6 @@ export function Nav() {
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,7 +37,6 @@ export function Nav() {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setShowSearch(false);
-        setShowUserMenu(false);
         setShowMobileMenu(false);
       }
     };
@@ -54,7 +51,6 @@ export function Nav() {
   // Close mobile menu on route change
   useEffect(() => {
     setShowMobileMenu(false);
-    setShowUserMenu(false);
   }, [location.pathname]);
 
   const isDarkPage = location.pathname.startsWith('/shop/') || location.pathname === '/admin' || location.pathname === '/collections';
@@ -133,7 +129,7 @@ export function Nav() {
           
           <div className="relative flex items-center h-full">
             {isSignedIn ? (
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             ) : (
               <SignInButton mode="modal">
                 <button className="hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center">

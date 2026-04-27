@@ -1,5 +1,11 @@
 import axios from 'axios'
 
+declare global {
+  interface Window {
+    Clerk?: any;
+  }
+}
+
 // Create Axios Instance
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8787/api',
