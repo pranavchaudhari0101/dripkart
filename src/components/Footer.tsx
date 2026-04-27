@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -42,33 +43,30 @@ export function Footer() {
         <div className="space-y-6">
           <h4 className="font-display text-[16px] font-bold uppercase tracking-[0.2em] mb-8">Navigation</h4>
           <div className="flex flex-col gap-4">
-            {['Archives', 'Latest Drop', 'Editorial', 'Collective'].map(link => (
-              <a key={link} href="#" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">
-                {link}
-              </a>
-            ))}
+            <Link to="/shop" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Archives</Link>
+            <Link to="/collections" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Latest Drop</Link>
+            <Link to="/editorial" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Editorial</Link>
+            <Link to="/collective" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Collective</Link>
           </div>
         </div>
 
         <div className="space-y-6">
           <p className="font-body font-black text-[12px] uppercase tracking-[0.3em] text-brand-accentColor mb-5">Support</p>
           <div className="flex flex-col gap-4">
-            {['Trace Manifest', 'Shipping Protocol', 'Privacy Policy', 'Terms of Service'].map(link => (
-              <a key={link} href="#" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">
-                {link}
-              </a>
-            ))}
+            <Link to="/order-tracking" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Trace Manifest</Link>
+            <Link to="/shipping" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Shipping Protocol</Link>
+            <Link to="/privacy" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Terms of Service</Link>
           </div>
         </div>
 
         <div className="space-y-6">
           <p className="font-body font-black text-[12px] uppercase tracking-[0.3em] text-brand-accentColor mb-5">Connect</p>
           <div className="flex flex-col gap-4">
-            {['Instagram', 'Discord', 'X/Twitter', 'Spotify'].map(link => (
-              <a key={link} href="#" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">
-                {link}
-              </a>
-            ))}
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Instagram</a>
+            <a href="https://discord.com" target="_blank" rel="noreferrer" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Discord</a>
+            <a href="https://x.com" target="_blank" rel="noreferrer" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">X/Twitter</a>
+            <a href="https://spotify.com" target="_blank" rel="noreferrer" className="font-body font-bold text-[13px] text-white hover:text-brand-accentColor transition-colors">Spotify</a>
           </div>
         </div>
       </div>

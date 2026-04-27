@@ -15,6 +15,11 @@ import { OrderSuccess } from './pages/OrderSuccess';
 import { OrderTracking } from './pages/OrderTracking';
 import { Admin } from './pages/Admin';
 import { Cart } from './pages/Cart';
+import { Editorial } from './pages/Editorial';
+import { Collective } from './pages/Collective';
+import { Shipping } from './pages/Shipping';
+import { Privacy } from './pages/Privacy';
+import { Terms } from './pages/Terms';
 const queryClient = new QueryClient();
 
 function App() {
@@ -37,6 +42,11 @@ function App() {
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/order-tracking" element={<OrderTracking />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/editorial" element={<Editorial />} />
+              <Route path="/collective" element={<Collective />} />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
             </Routes>
             <Footer />
           </div>
