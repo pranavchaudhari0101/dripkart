@@ -102,9 +102,9 @@ export function OrderSuccess() {
         </>
       )}
 
-      <div className="success-anim bg-white px-10 py-8 mb-12 border border-gray-200 shadow-lg text-center rounded-sm">
-        <p className="font-body text-[12px] uppercase tracking-[0.4em] text-brand-textPrimary mb-2 font-black">Manifest Reference</p>
-        <p className="font-display text-[28px] font-black tracking-tighter text-brand-accentColor bg-black px-4 py-2 w-fit mx-auto">{orderId}</p>
+      <div className="success-anim bg-white px-6 md:px-10 py-6 md:py-8 mb-12 border border-gray-200 shadow-lg text-center rounded-sm w-full max-w-[500px]">
+        <p className="font-body text-[10px] md:text-[12px] uppercase tracking-[0.4em] text-brand-textPrimary mb-3 font-black">Manifest Reference</p>
+        <p className="font-mono text-[14px] md:text-[18px] font-bold tracking-widest text-brand-accentColor bg-black px-4 py-3 rounded-sm break-all">{orderId}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 success-anim">
