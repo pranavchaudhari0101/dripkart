@@ -5,12 +5,13 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '../context/CartContext';
 import { useAuthStore } from '../store/authStore';
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Nav() {
   const { cartCount } = useCart();
-  const { user, logout } = useAuthStore();
+  const { user: clerkUser, isSignedIn } = useUser();
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
@@ -92,7 +93,7 @@ export function Nav() {
           <Link to="/shop" className="font-body text-xs font-bold uppercase tracking-[0.12em] hover:opacity-60 transition-opacity">Shop</Link>
           <Link to="/collections" className="font-body text-xs font-bold uppercase tracking-[0.12em] hover:opacity-60 transition-opacity">Collections</Link>
           <Link to="/about" className="font-body text-xs font-bold uppercase tracking-[0.12em] hover:opacity-60 transition-opacity">About</Link>
-          {user?.role === 'ADMIN' && (
+          {clerkUser?.publicMetadata?.role === 'ADMIN' && (
             <Link to="/admin" className="font-body text-xs font-bold uppercase tracking-[0.12em] text-brand-accentColor hover:opacity-60 transition-opacity">Manage</Link>
           )}
         </div>
@@ -130,37 +131,15 @@ export function Nav() {
             <Search strokeWidth={2.5} size={20} />
           </button>
           
-          <div className="relative">
-            <button 
-              onClick={() => {
-                if (user) {
-                  setShowUserMenu(!showUserMenu);
-                } else {
-                  navigate('/login');
-                }
-              }}
-              className="hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center"
-            >
-              <User strokeWidth={2.5} size={20} />
-            </button>
-            
-            {user && showUserMenu && (
-              <div className="absolute top-10 right-0 w-56 bg-white border border-gray-200 shadow-2xl py-3 flex flex-col text-brand-textPrimary z-50 animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm">
-                <div className="px-5 py-3 border-b border-gray-200 mb-2">
-                  <p className="font-display font-black text-[18px] truncate">{user.name}</p>
-                  <p className="font-body text-[11px] text-brand-accentColor bg-brand-textPrimary px-2 w-fit uppercase tracking-widest font-black">{user.role}</p>
-                </div>
-                <Link to="/order-tracking" onClick={() => setShowUserMenu(false)} className="px-5 py-2.5 font-body text-[14px] font-black hover:bg-brand-accentColor hover:text-brand-textPrimary transition-colors">My Orders</Link>
-                {user.role === 'ADMIN' && (
-                  <Link to="/admin" onClick={() => setShowUserMenu(false)} className="px-5 py-2.5 font-body text-[14px] font-black hover:bg-brand-accentColor hover:text-brand-textPrimary transition-colors">Admin Dashboard</Link>
-                )}
-                <button 
-                  onClick={() => { logout(); setShowUserMenu(false); }}
-                  className="px-5 py-2.5 font-body text-[14px] font-black text-left text-red-600 hover:bg-red-600 hover:text-white transition-colors border-t border-gray-200 mt-2"
-                >
-                  Sign Out
+          <div className="relative flex items-center h-full">
+            {isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <SignInButton mode="modal">
+                <button className="hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center">
+                  <User strokeWidth={2.5} size={20} />
                 </button>
-              </div>
+              </SignInButton>
             )}
           </div>
           <Link 
@@ -188,10 +167,10 @@ export function Nav() {
               </Link>
             </div>
             
-            {user && (
+            {isSignedIn && clerkUser && (
               <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <p className="font-body text-[14px] font-black text-brand-textPrimary">{user.name}</p>
-                <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest">{user.email}</p>
+                <p className="font-body text-[14px] font-black text-brand-textPrimary">{clerkUser.fullName}</p>
+                <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest">{clerkUser.primaryEmailAddress?.emailAddress}</p>
               </div>
             )}
 
@@ -216,7 +195,7 @@ export function Nav() {
                 </Link>
               ))}
               
-              {user?.role === 'ADMIN' && (
+              {clerkUser?.publicMetadata?.role === 'ADMIN' && (
                 <Link to="/admin" onClick={() => setShowMobileMenu(false)} className="block py-3 px-4 font-body text-[14px] font-bold uppercase tracking-[0.1em] text-brand-accentColor bg-brand-textPrimary rounded-sm mt-4">
                   Admin Dashboard
                 </Link>
@@ -224,24 +203,25 @@ export function Nav() {
             </div>
 
             <div className="p-6 border-t border-gray-100 space-y-3">
-              {user ? (
+              {isSignedIn ? (
                 <>
                   <Link to="/order-tracking" onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors">
                     Track Orders
                   </Link>
-                  <button onClick={() => { logout(); setShowMobileMenu(false); }} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] text-red-600 border border-red-200 rounded-sm hover:bg-red-50 transition-colors">
-                    Sign Out
-                  </button>
                 </>
               ) : (
-                <>
-                  <Link to="/login" onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] bg-brand-textPrimary text-white rounded-sm">
-                    Sign In
-                  </Link>
-                  <Link to="/register" onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50">
-                    Create Account
-                  </Link>
-                </>
+                <div className="flex flex-col gap-3">
+                  <SignInButton mode="modal">
+                    <button onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] bg-brand-textPrimary text-white rounded-sm">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50">
+                      Create Account
+                    </button>
+                  </SignUpButton>
+                </div>
               )}
             </div>
           </div>

@@ -9,6 +9,8 @@ export interface Env {
   CLOUDINARY_CLOUD_NAME: string
   CLOUDINARY_API_KEY: string
   CLOUDINARY_API_SECRET: string
+  CLERK_PUBLISHABLE_KEY: string
+  CLERK_SECRET_KEY: string
   PHONEPE_MERCHANT_ID: string
   PHONEPE_SALT_KEY: string
   PHONEPE_SALT_INDEX: string

@@ -1,120 +1,68 @@
 import { Hono } from 'hono'
-import { z } from 'zod'
-import { zValidator } from '@hono/zod-validator'
 import { getDb } from '../db'
 import { users, carts } from '../db/schema'
 import { eq } from 'drizzle-orm'
-import { hashPassword, verifyPassword } from '../utils/crypto'
-import { signToken } from '../utils/jwt'
 import { authMiddleware } from '../middleware/auth'
+import { createClerkClient } from '@clerk/backend'
 import type { Env } from '../types/env'
 
 const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
 
-const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(10).max(15).optional(),
-  password: z.string().min(8)
-})
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string()
-})
-
-router.post('/register', zValidator('json', registerSchema), async (c) => {
-  console.log('[AUTH/REGISTER] Request received');
-  const data = c.req.valid('json')
-  console.log(`[AUTH/REGISTER] Data validated for: ${data.email}`);
-  
-  try {
-    const db = getDb(c.env.DATABASE_URL)
-    console.log('[AUTH/REGISTER] DB connected');
-
-    const existingUser = await db.select().from(users).where(eq(users.email, data.email)).limit(1)
-    if (existingUser.length > 0) {
-      console.warn(`[AUTH/REGISTER] Email already registered: ${data.email}`);
-      return c.json({ error: 'Email already registered' }, 400)
-    }
-
-    const hashedPassword = await hashPassword(data.password)
-    const userId = `usr_${crypto.randomUUID()}`
-    console.log(`[AUTH/REGISTER] ID generated: ${userId}`);
-
-    // Insert user
-    await db.insert(users).values({
-      id: userId,
-      name: data.name,
-      email: data.email,
-      phone: data.phone || null,
-      password: hashedPassword,
-      role: 'CUSTOMER'
-    })
-    console.log('[AUTH/REGISTER] User inserted');
-
-    // Create empty cart for user
-    await db.insert(carts).values({
-      id: `crt_${crypto.randomUUID()}`,
-      userId: userId
-    })
-    console.log('[AUTH/REGISTER] Cart created');
-
-    const token = await signToken({ id: userId, role: 'CUSTOMER' }, c.env.JWT_SECRET)
-    
-    console.log('[AUTH/REGISTER] Registration successful');
-    return c.json({ 
-      message: 'Registration successful',
-      user: { id: userId, name: data.name, email: data.email, role: 'CUSTOMER' },
-      token 
-    }, 201)
-  } catch (err: any) {
-    console.error('[AUTH/REGISTER] Error:', err);
-    return c.json({ error: `Registration failed: ${err.message}` }, 500);
-  }
-})
-
-router.post('/login', zValidator('json', loginSchema), async (c) => {
-  console.log('[AUTH/LOGIN] Request received');
-  const { email, password } = c.req.valid('json')
-  
-  try {
-    const db = getDb(c.env.DATABASE_URL)
-    console.log('[AUTH/LOGIN] DB connected');
-
-    const userRes = await db.select().from(users).where(eq(users.email, email)).limit(1)
-    const user = userRes[0]
-
-    if (!user || !(await verifyPassword(password, user.password))) {
-      console.warn(`[AUTH/LOGIN] Invalid credentials for: ${email}`);
-      return c.json({ error: 'Invalid email or password' }, 401)
-    }
-
-    const token = await signToken({ id: user.id, role: user.role }, c.env.JWT_SECRET)
-
-    console.log('[AUTH/LOGIN] Login successful');
-    return c.json({ 
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
-      token 
-    })
-  } catch (err: any) {
-    console.error('[AUTH/LOGIN] Error:', err);
-    return c.json({ error: `Login failed: ${err.message}` }, 500);
-  }
-})
-
+// Auto-sync or return user
 router.get('/me', authMiddleware, async (c) => {
-  const payload = c.get('user')
+  const payload = c.get('user') // { id: sub, role }
   const db = getDb(c.env.DATABASE_URL)
   
-  const userRes = await db.select({
+  let userRes = await db.select({
     id: users.id,
     name: users.name,
     email: users.email,
     role: users.role
   }).from(users).where(eq(users.id, payload.id)).limit(1)
 
-  if (!userRes.length) return c.json({ error: 'User not found' }, 404)
+  // If user doesn't exist, we sync them from Clerk
+  if (userRes.length === 0) {
+    console.log(`[AUTH/SYNC] Syncing new Clerk user: ${payload.id}`);
+    try {
+      const clerk = createClerkClient({
+        publishableKey: c.env.CLERK_PUBLISHABLE_KEY,
+        secretKey: c.env.CLERK_SECRET_KEY,
+      });
+
+      const clerkUser = await clerk.users.getUser(payload.id);
+      
+      const email = clerkUser.emailAddresses[0]?.emailAddress || '';
+      const name = clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim() : 'User';
+
+      await db.insert(users).values({
+        id: payload.id, // Use Clerk's ID
+        name,
+        email,
+        phone: null,
+        password: '', // No password, handled by Clerk
+        role: 'CUSTOMER'
+      });
+
+      await db.insert(carts).values({
+        id: `crt_${crypto.randomUUID()}`,
+        userId: payload.id
+      });
+
+      console.log(`[AUTH/SYNC] Created new user and cart for: ${payload.id}`);
+
+      // Re-fetch
+      userRes = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role
+      }).from(users).where(eq(users.id, payload.id)).limit(1)
+
+    } catch (err) {
+      console.error('[AUTH/SYNC] Error syncing user from Clerk:', err);
+      return c.json({ error: 'Failed to sync user data' }, 500);
+    }
+  }
   
   return c.json({ user: userRes[0] })
 })

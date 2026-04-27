@@ -9,8 +9,6 @@ import { Checkout } from './pages/Checkout';
 import { Collections } from './pages/Collections';
 import { About } from './pages/About';
 import { ProductDetail } from './pages/ProductDetail';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
 import { OrderSuccess } from './pages/OrderSuccess';
 import { OrderTracking } from './pages/OrderTracking';
 import { Admin } from './pages/Admin';
@@ -37,8 +35,6 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/order-tracking" element={<OrderTracking />} />
               <Route path="/admin" element={<Admin />} />

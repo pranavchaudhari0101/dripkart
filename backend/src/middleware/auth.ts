@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory'
-import { verifyToken } from '../utils/jwt'
+import { verifyToken } from '@clerk/backend'
 import { getDb } from '../db'
 import { users } from '../db/schema'
 import { eq } from 'drizzle-orm'
@@ -19,10 +19,27 @@ export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: Varia
   const token = authHeader.split(' ')[1]
   
   try {
-    const payload = await verifyToken(token, c.env.JWT_SECRET)
-    c.set('user', payload as Variables['user'])
+    const payload = await verifyToken(token, {
+      secretKey: c.env.CLERK_SECRET_KEY,
+    })
+    
+    // Default role
+    let role: 'CUSTOMER' | 'ADMIN' = 'CUSTOMER'
+    
+    // Try to find the user in DB
+    const db = getDb(c.env.DATABASE_URL)
+    const dbUser = await db.select().from(users).where(eq(users.id, payload.sub)).limit(1)
+    
+    if (dbUser.length > 0) {
+      role = dbUser[0].role as 'CUSTOMER' | 'ADMIN'
+    } else {
+      // If user doesn't exist yet, we will auto-sync them later or on a specific route
+    }
+
+    c.set('user', { id: payload.sub, role })
     await next()
   } catch (error) {
+    console.error('Clerk Token Verification Failed:', error)
     return c.json({ error: 'Unauthorized: Invalid or expired token' }, 401)
   }
 })

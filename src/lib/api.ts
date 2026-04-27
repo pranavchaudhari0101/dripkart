@@ -10,22 +10,19 @@ export const api = axios.create({
 
 // Request Interceptor: Attach JWT token
 api.interceptors.request.use(
-  (config) => {
-    // We try to grab the token directly from localStorage since the Zustand store is persisted
-    const authStorage = localStorage.getItem('auth-storage')
-    if (authStorage) {
-      try {
-        const parsed = JSON.parse(authStorage)
-        const token = parsed.state?.token
+  async (config) => {
+    try {
+      // @ts-ignore - Clerk attaches itself to window
+      if (window.Clerk && window.Clerk.session) {
+        const token = await window.Clerk.session.getToken();
         if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`
+          config.headers.Authorization = `Bearer ${token}`;
         }
-      } catch (err) {
-         console.error('Failed to parse auth storage', err)
       }
+    } catch (err) {
+      console.error('Failed to get Clerk token', err);
     }
-
-    return config
+    return config;
   },
   (error) => {
     return Promise.reject(error)
@@ -37,10 +34,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn('Session expired or unauthorized. Clearing session.')
-      localStorage.removeItem('auth-storage')
+      console.warn('Session expired or unauthorized.');
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 )
 
