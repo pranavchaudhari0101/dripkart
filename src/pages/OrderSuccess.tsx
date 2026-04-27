@@ -6,7 +6,7 @@ import gsap from 'gsap';
 
 export function OrderSuccess() {
   const [searchParams] = useSearchParams();
-  const orderId = searchParams.get('orderId') || 'ORD-UNKNOWN';
+  const orderId = searchParams.get('orderId') || searchParams.get('transactionId') || 'ORD-UNKNOWN';
   const [status, setStatus] = useState<'PENDING' | 'PAID' | 'FAILED'>('PENDING');
 
   useEffect(() => {
