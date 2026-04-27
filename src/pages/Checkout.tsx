@@ -86,7 +86,7 @@ export function Checkout() {
         // COD success
         if (res.data.orderId) {
           clearCart();
-          navigate('/order-success', { state: { orderId: res.data.orderId } });
+          navigate('/order-success', { state: { orderId: res.data.orderId, isCod: true } });
         }
       } catch (err: any) {
         const msg = err.response?.data?.error || err.response?.data?.message || 'Order creation failed. Please try again.';

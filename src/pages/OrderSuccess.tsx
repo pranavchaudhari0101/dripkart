@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Check, Loader2, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import gsap from 'gsap';
 
 export function OrderSuccess() {
   const [searchParams] = useSearchParams();
-  const orderId = searchParams.get('orderId') || searchParams.get('transactionId') || 'ORD-UNKNOWN';
-  const [status, setStatus] = useState<'PENDING' | 'PAID' | 'FAILED'>('PENDING');
+  const location = useLocation();
+  const stateOrderId = location.state?.orderId;
+  const isCod = location.state?.isCod;
+
+  const orderId = searchParams.get('orderId') || searchParams.get('transactionId') || stateOrderId || 'ORD-UNKNOWN';
+  const [status, setStatus] = useState<'PENDING' | 'PAID' | 'FAILED' | 'COD_SUCCESS'>(isCod ? 'COD_SUCCESS' : 'PENDING');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -19,7 +23,7 @@ export function OrderSuccess() {
       ease: 'power3.out' 
     });
 
-    if (orderId === 'ORD-UNKNOWN') return;
+    if (orderId === 'ORD-UNKNOWN' || isCod) return;
 
     let pollCount = 0;
     // Poll for payment status
@@ -58,6 +62,18 @@ export function OrderSuccess() {
           </h1>
           <p className="success-anim font-body text-brand-textMuted text-[16px] max-w-[400px] mx-auto mb-8">
             Your drip is secured and being prepared for dispatch.
+          </p>
+        </>
+      ) : status === 'COD_SUCCESS' ? (
+        <>
+          <div className="success-anim w-24 h-24 bg-brand-accentColor rounded-full flex items-center justify-center mb-8 mx-auto animate-bounce">
+            <Check size={48} className="text-brand-textPrimary" />
+          </div>
+          <h1 className="success-anim font-display text-[48px] md:text-[64px] leading-tight mb-4">
+            Order Confirmed
+          </h1>
+          <p className="success-anim font-body text-brand-textMuted text-[16px] max-w-[400px] mx-auto mb-8">
+            Your Cash on Delivery order is placed. Pay when your drip arrives!
           </p>
         </>
       ) : status === 'FAILED' ? (
