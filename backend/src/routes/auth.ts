@@ -34,14 +34,34 @@ router.get('/me', authMiddleware, async (c) => {
       const email = clerkUser.emailAddresses[0]?.emailAddress || '';
       const name = clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim() : 'User';
 
-      await db.insert(users).values({
-        id: payload.id, // Use Clerk's ID
-        name,
-        email,
-        phone: null,
-        password: '', // No password, handled by Clerk
-        role: 'CUSTOMER'
-      });
+      const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+
+      if (existingUser.length > 0) {
+        console.log(`[AUTH/SYNC] Found existing user with email ${email}. Migrating to Clerk ID.`);
+        
+        // The old user was likely created by the seeder. It has a cart, but no orders.
+        // We delete the old cart and user, then recreate with the Clerk ID, preserving the role.
+        await db.delete(carts).where(eq(carts.userId, existingUser[0].id));
+        await db.delete(users).where(eq(users.id, existingUser[0].id));
+        
+        await db.insert(users).values({
+          id: payload.id,
+          name: existingUser[0].name || name,
+          email,
+          phone: existingUser[0].phone,
+          password: existingUser[0].password,
+          role: existingUser[0].role // This preserves the ADMIN role!
+        });
+      } else {
+        await db.insert(users).values({
+          id: payload.id,
+          name,
+          email,
+          phone: null,
+          password: '',
+          role: 'CUSTOMER'
+        });
+      }
 
       await db.insert(carts).values({
         id: `crt_${crypto.randomUUID()}`,
