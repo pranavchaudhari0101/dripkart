@@ -5,6 +5,7 @@ import { eq, desc, and, sql } from 'drizzle-orm'
 import { authMiddleware, adminOnlyMiddleware } from '../middleware/auth'
 import { uploadImage } from '../services/cloudinary'
 import { createOrder as shiprocketCreateOrder, assignCourier, generateLabel } from '../services/shiprocket'
+import { sendOrderShippedEmail } from '../services/email'
 import type { Env } from '../types/env'
 
 const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
@@ -198,6 +199,18 @@ router.patch('/orders/:id/confirm-shipping', async (c) => {
         updatedAt: new Date(),
       })
       .where(eq(orders.id, orderId))
+
+    // Send Order Shipped Email
+    if (user.email && awbCode) {
+      const trackingUrl = `https://www.shiprocket.in/shipment-tracking/${awbCode}`
+      const safeCourierName = courierName || 'Courier'
+      sendOrderShippedEmail(
+        user.email,
+        { id: orderId, courierName: safeCourierName, awbCode },
+        trackingUrl,
+        c.env
+      ).catch(e => console.error('Failed to send shipped email:', e))
+    }
 
     return c.json({
       success: true,

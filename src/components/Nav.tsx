@@ -4,7 +4,7 @@ import { Search, User, ShoppingBag, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '../context/CartContext';
-import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/react';
+import { SignInButton, SignUpButton, UserButton, SignOutButton, useUser } from '@clerk/react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -127,12 +127,19 @@ export function Nav() {
             <Search strokeWidth={2.5} size={20} />
           </button>
           
-          <div className="relative flex items-center h-full">
+          <div className="flex items-center h-full z-[100]">
             {isSignedIn ? (
-              <UserButton />
+              <UserButton 
+                appearance={{
+                  elements: {
+                    rootBox: "z-[100]",
+                    userButtonPopoverCard: { pointerEvents: "initial", zIndex: 99999 }
+                  }
+                }}
+              />
             ) : (
               <SignInButton mode="modal">
-                <button className="hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center">
+                <button type="button" aria-label="Sign In" className="cursor-pointer hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center">
                   <User strokeWidth={2.5} size={20} />
                 </button>
               </SignInButton>
@@ -204,16 +211,21 @@ export function Nav() {
                   <Link to="/order-tracking" onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors">
                     Track Orders
                   </Link>
+                  <SignOutButton>
+                    <button onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] bg-red-50 text-red-600 rounded-sm hover:bg-red-100 transition-colors">
+                      Sign Out
+                    </button>
+                  </SignOutButton>
                 </>
               ) : (
                 <div className="flex flex-col gap-3">
                   <SignInButton mode="modal">
-                    <button onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] bg-brand-textPrimary text-white rounded-sm">
+                    <button type="button" aria-label="Sign In" className="cursor-pointer block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] bg-brand-textPrimary text-white rounded-sm">
                       Sign In
                     </button>
                   </SignInButton>
                   <SignUpButton mode="modal">
-                    <button onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50">
+                    <button type="button" aria-label="Create Account" className="cursor-pointer block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50">
                       Create Account
                     </button>
                   </SignUpButton>

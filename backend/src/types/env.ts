@@ -22,4 +22,5 @@ export interface Env {
   BACKEND_URL: string
   DEV_SECRET: string
   NODE_ENV?: string
+  RESEND_API_KEY: string
 }

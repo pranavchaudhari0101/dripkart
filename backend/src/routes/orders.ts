@@ -4,6 +4,7 @@ import { orders, orderItems, products, productVariants, cartItems, carts } from 
 import { eq, and, sql, gte } from 'drizzle-orm'
 import { authMiddleware } from '../middleware/auth'
 import { initiatePayment } from '../services/phonepe'
+import { sendOrderConfirmedEmail } from '../services/email'
 
 import type { Env } from '../types/env'
 
@@ -83,6 +84,16 @@ router.post('/create', async (c) => {
 
     // 4. Initiate Payment (shipping is now triggered manually by admin)
     if (isCod) {
+      // Send Order Confirmed Email for COD
+      const email = (address as any)?.email
+      if (email) {
+        sendOrderConfirmedEmail(
+          email,
+          { id: orderId, finalAmount: totalAmount, shippingAddress: address },
+          c.env
+        ).catch(e => console.error('Failed to send confirmed email (COD):', e))
+      }
+
       // COD: order sits at PROCESSING until admin confirms shipping
       return c.json({ success: true, orderId, paymentUrl: null })
     }

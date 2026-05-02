@@ -3,6 +3,7 @@ import { getDb } from '../db'
 import { orders, carts, cartItems } from '../db/schema'
 import { eq, ne, and } from 'drizzle-orm'
 import { verifyCallback } from '../services/phonepe'
+import { sendOrderConfirmedEmail } from '../services/email'
 import type { Env } from '../types/env'
 
 const router = new Hono<{ Bindings: Env }>()
@@ -31,12 +32,26 @@ router.post('/phonepe/callback', async (c) => {
         eq(orders.id, orderId),
         ne(orders.paymentStatus, 'PAID')
       ))
-      .returning({ userId: orders.userId })
+      .returning({ userId: orders.userId, shippingAddress: orders.shippingAddress, finalAmount: orders.finalAmount })
 
     // Clear User Cart after successful payment
     if (updatedOrder.length > 0) {
       try {
-        const userId = updatedOrder[0].userId
+        const orderData = updatedOrder[0]
+        const userId = orderData.userId
+        
+        // Send Order Confirmed Email
+        const email = (orderData.shippingAddress as any)?.email
+        if (email) {
+          c.executionCtx.waitUntil(
+            sendOrderConfirmedEmail(
+              email, 
+              { id: orderId, finalAmount: orderData.finalAmount, shippingAddress: orderData.shippingAddress }, 
+              c.env
+            ).catch(e => console.error('Failed to send confirmed email:', e))
+          )
+        }
+
         const cartRes = await db.select().from(carts).where(eq(carts.userId, userId)).limit(1)
         if (cartRes.length > 0) {
           await db.delete(cartItems).where(eq(cartItems.cartId, cartRes[0].id))
