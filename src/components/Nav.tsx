@@ -1,23 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, User, ShoppingBag, X } from 'lucide-react';
+import { Search, User, ShoppingBag, X, Package, Settings, LogOut } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '../context/CartContext';
-import { SignInButton, SignUpButton, UserButton, SignOutButton, useUser } from '@clerk/react';
+import { SignInButton, SignUpButton, SignOutButton, useUser, useClerk } from '@clerk/react';
+import { useAuthStore } from '../store/authStore';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Nav() {
   const { cartCount } = useCart();
   const { user: clerkUser, isSignedIn } = useUser();
+  const { openUserProfile } = useClerk();
+  const { user: authUser } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Determine if user is admin (check both Clerk publicMetadata and synced store)
+  const isAdmin = clerkUser?.publicMetadata?.role === 'ADMIN' || authUser?.role === 'ADMIN';
 
   useEffect(() => {
     if (!isHome) {
@@ -38,6 +45,7 @@ export function Nav() {
       if (e.key === 'Escape') {
         setShowSearch(false);
         setShowMobileMenu(false);
+        setShowProfileMenu(false);
       }
     };
     window.addEventListener('keydown', handleEsc);
@@ -51,7 +59,21 @@ export function Nav() {
   // Close mobile menu on route change
   useEffect(() => {
     setShowMobileMenu(false);
+    setShowProfileMenu(false);
   }, [location.pathname]);
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    if (!showProfileMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('#profileMenuContainer')) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [showProfileMenu]);
 
   const isDarkPage = location.pathname.startsWith('/shop/') || location.pathname === '/admin' || location.pathname === '/collections';
 
@@ -80,6 +102,12 @@ export function Nav() {
     setSearchQuery('');
   };
 
+  // Profile menu items
+  const profileMenuLinks = [
+    { to: '/order-tracking', label: 'Track Orders', icon: Package },
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin Dashboard', icon: Settings }] : []),
+  ];
+
   return (
     <>
       <nav id="mainNav" className={navClasses}>
@@ -89,7 +117,7 @@ export function Nav() {
           <Link to="/shop" className="font-body text-xs font-bold uppercase tracking-[0.12em] hover:opacity-60 transition-opacity">Shop</Link>
           <Link to="/collections" className="font-body text-xs font-bold uppercase tracking-[0.12em] hover:opacity-60 transition-opacity">Collections</Link>
           <Link to="/about" className="font-body text-xs font-bold uppercase tracking-[0.12em] hover:opacity-60 transition-opacity">About</Link>
-          {clerkUser?.publicMetadata?.role === 'ADMIN' && (
+          {isAdmin && (
             <Link to="/admin" className="font-body text-xs font-bold uppercase tracking-[0.12em] text-brand-accentColor hover:opacity-60 transition-opacity">Manage</Link>
           )}
         </div>
@@ -127,16 +155,78 @@ export function Nav() {
             <Search strokeWidth={2.5} size={20} />
           </button>
           
-          <div className="flex items-center h-full z-[100]">
+          {/* Profile / Auth Button */}
+          <div id="profileMenuContainer" className="relative flex items-center">
             {isSignedIn ? (
-              <UserButton 
-                appearance={{
-                  elements: {
-                    rootBox: "z-[100]",
-                    userButtonPopoverCard: { pointerEvents: "initial", zIndex: 99999 }
-                  }
-                }}
-              />
+              <>
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="cursor-pointer hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center"
+                  aria-label="Profile menu"
+                >
+                  {clerkUser?.imageUrl ? (
+                    <img 
+                      src={clerkUser.imageUrl} 
+                      alt="" 
+                      className="w-7 h-7 rounded-full object-cover border-2 border-current"
+                    />
+                  ) : (
+                    <User strokeWidth={2.5} size={20} />
+                  )}
+                </button>
+
+                {/* Profile Dropdown */}
+                {showProfileMenu && (
+                  <div className="absolute top-full right-0 mt-3 w-[260px] bg-white text-brand-textPrimary shadow-2xl border border-gray-200 rounded-sm z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                    {/* User Info */}
+                    <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                      <p className="font-body text-[13px] font-black text-brand-textPrimary truncate">
+                        {clerkUser?.fullName || authUser?.name || 'User'}
+                      </p>
+                      <p className="font-body text-[11px] text-gray-500 truncate">
+                        {clerkUser?.primaryEmailAddress?.emailAddress || authUser?.email}
+                      </p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-2">
+                      {/* Manage Account via Clerk */}
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          openUserProfile();
+                        }}
+                        className="w-full flex items-center gap-3 px-5 py-3 text-left font-body text-[12px] font-bold uppercase tracking-[0.1em] hover:bg-gray-50 transition-colors"
+                      >
+                        <Settings size={16} className="text-gray-400" />
+                        Manage Account
+                      </button>
+
+                      {profileMenuLinks.map(link => (
+                        <Link
+                          key={link.to}
+                          to={link.to}
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center gap-3 px-5 py-3 font-body text-[12px] font-bold uppercase tracking-[0.1em] hover:bg-gray-50 transition-colors"
+                        >
+                          <link.icon size={16} className="text-gray-400" />
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Sign Out */}
+                    <div className="border-t border-gray-100">
+                      <SignOutButton>
+                        <button className="w-full flex items-center gap-3 px-5 py-3 font-body text-[12px] font-bold uppercase tracking-[0.1em] text-red-600 hover:bg-red-50 transition-colors">
+                          <LogOut size={16} />
+                          Sign Out
+                        </button>
+                      </SignOutButton>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <SignInButton mode="modal">
                 <button type="button" aria-label="Sign In" className="cursor-pointer hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center">
@@ -145,6 +235,7 @@ export function Nav() {
               </SignInButton>
             )}
           </div>
+
           <Link 
             to="/cart"
             className="relative hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center"
@@ -172,7 +263,7 @@ export function Nav() {
             
             {isSignedIn && clerkUser && (
               <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <p className="font-body text-[14px] font-black text-brand-textPrimary">{clerkUser.fullName}</p>
+                <p className="font-body text-[14px] font-black text-brand-textPrimary">{clerkUser.fullName || authUser?.name}</p>
                 <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest">{clerkUser.primaryEmailAddress?.emailAddress}</p>
               </div>
             )}
@@ -198,7 +289,7 @@ export function Nav() {
                 </Link>
               ))}
               
-              {clerkUser?.publicMetadata?.role === 'ADMIN' && (
+              {isAdmin && (
                 <Link to="/admin" onClick={() => setShowMobileMenu(false)} className="block py-3 px-4 font-body text-[14px] font-bold uppercase tracking-[0.1em] text-brand-accentColor bg-brand-textPrimary rounded-sm mt-4">
                   Admin Dashboard
                 </Link>
@@ -208,6 +299,15 @@ export function Nav() {
             <div className="p-6 border-t border-gray-100 space-y-3">
               {isSignedIn ? (
                 <>
+                  <button
+                    onClick={() => {
+                      setShowMobileMenu(false);
+                      openUserProfile();
+                    }}
+                    className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors"
+                  >
+                    Manage Account
+                  </button>
                   <Link to="/order-tracking" onClick={() => setShowMobileMenu(false)} className="block w-full py-3 text-center font-body text-[12px] font-bold uppercase tracking-[0.15em] border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors">
                     Track Orders
                   </Link>

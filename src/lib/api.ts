@@ -6,19 +6,19 @@ declare global {
   }
 }
 
-// Create Axios Instance
+// Create Axios Instance with proper timeout
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8787/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://backend.pranav1727chaudhari.workers.dev/api',
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 8000, // 8 second timeout — fail fast, fallback to mock data
 })
 
-// Request Interceptor: Attach JWT token
+// Request Interceptor: Attach Clerk JWT token
 api.interceptors.request.use(
   async (config) => {
     try {
-      // @ts-ignore - Clerk attaches itself to window
       if (window.Clerk && window.Clerk.session) {
         const token = await window.Clerk.session.getToken();
         if (token && config.headers) {

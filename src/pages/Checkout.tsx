@@ -3,12 +3,12 @@ import { useCart } from '../context/CartContext';
 import { api } from '../lib/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, AlertCircle, X } from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
+import { useUser, SignInButton } from '@clerk/react';
 import gsap from 'gsap';
 
 export function Checkout() {
   const { cartItems, cartTotal, clearCart } = useCart();
-  const { user } = useAuthStore();
+  const { isSignedIn, isLoaded } = useUser();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,13 +22,6 @@ export function Checkout() {
       if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
     };
   }, []);
-
-  // Auth check — redirect to login if not logged in
-  useEffect(() => {
-    if (!user) {
-      navigate('/login', { state: { returnTo: '/checkout' } });
-    }
-  }, [user, navigate]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -104,7 +97,32 @@ export function Checkout() {
 
   const inputClass = "w-full p-3.5 md:p-4 bg-white border border-gray-300 rounded-sm font-body text-[13px] text-gray-900 outline-none focus:border-[#c8ff00] focus:ring-1 focus:ring-[#c8ff00] transition-all placeholder:text-gray-400 shadow-sm";
 
-  if (!user) return null; // Will redirect via useEffect
+  // Show loading while Clerk is initializing
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen pt-[140px] pb-20 flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-2 border-brand-accentColor border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Not signed in — show sign-in prompt
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen pt-[140px] pb-20 px-4 md:px-6 flex flex-col items-center justify-center text-center bg-gray-50">
+        <h1 className="font-display text-[28px] md:text-[40px] mb-4 text-gray-900">Sign In to Continue</h1>
+        <p className="font-body text-[14px] text-gray-500 mb-8 max-w-md">Please sign in to your account to proceed with checkout.</p>
+        <SignInButton mode="modal" forceRedirectUrl="/checkout">
+          <button className="px-10 py-4 bg-gray-900 text-white font-body font-black text-[13px] uppercase tracking-[0.3em] rounded-sm hover:bg-[#c8ff00] hover:text-gray-900 transition-all shadow-lg">
+            Sign In to Checkout
+          </button>
+        </SignInButton>
+        <Link to="/shop" className="mt-4 font-body text-[12px] text-gray-500 uppercase tracking-wider hover:text-gray-900 transition-colors">
+          ← Continue Shopping
+        </Link>
+      </div>
+    );
+  }
 
   if (!cartItems.length) {
     return (

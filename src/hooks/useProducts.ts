@@ -22,7 +22,8 @@ export function useProducts(featured?: boolean) {
     queryFn: async () => {
       try {
         const res = await api.get('/products', {
-          params: { featured }
+          params: { featured },
+          timeout: 5000, // 5s timeout — fall back to mock data fast
         });
         
         if (!res.data || res.data.length === 0) {
@@ -47,5 +48,7 @@ export function useProducts(featured?: boolean) {
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15,   // 15 minutes
+    refetchOnWindowFocus: false,
   });
 }

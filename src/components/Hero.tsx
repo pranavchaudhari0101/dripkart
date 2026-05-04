@@ -44,7 +44,9 @@ export function Hero() {
 
       <img 
         src="/hero-model.png" 
-        alt="Fashion model" 
+        alt="Fashion model"
+        fetchPriority="high"
+        decoding="async"
         className="hero-model absolute right-[-5%] md:right-[5%] bottom-0 h-[70%] md:h-[85%] z-[2] object-contain object-bottom"
       />
 

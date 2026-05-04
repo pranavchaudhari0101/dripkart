@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { Env } from './types/env'
+import { rateLimitMiddleware } from './middleware/rateLimit'
 
 import authRoutes from './routes/auth'
 import productRoutes from './routes/products'
@@ -30,6 +31,20 @@ app.use('*', async (c, next) => {
   })
   return corsHandler(c, next)
 })
+
+// Rate Limiting — applied per route group
+// Public routes: 60 requests per minute
+app.use('/api/products/*', rateLimitMiddleware({ maxRequests: 60, windowSeconds: 60 }))
+// Auth routes: 30 requests per minute
+app.use('/api/auth/*', rateLimitMiddleware({ maxRequests: 30, windowSeconds: 60 }))
+// Order creation: 10 requests per minute (prevent spam)
+app.use('/api/orders/*', rateLimitMiddleware({ maxRequests: 10, windowSeconds: 60 }))
+// Payment routes: 15 requests per minute
+app.use('/api/payments/*', rateLimitMiddleware({ maxRequests: 15, windowSeconds: 60 }))
+// Admin routes: 30 requests per minute
+app.use('/api/admin/*', rateLimitMiddleware({ maxRequests: 30, windowSeconds: 60 }))
+// Cart routes: 40 requests per minute
+app.use('/api/cart/*', rateLimitMiddleware({ maxRequests: 40, windowSeconds: 60 }))
 
 // Healthcheck
 app.get('/health', (c) => c.json({ status: 'ok', time: new Date().toISOString() }))

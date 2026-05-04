@@ -14,4 +14,16 @@ export default defineConfig({
   server: {
     allowedHosts: ["distendedly-nonenlightened-shantay.ngrok-free.dev"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-clerk': ['@clerk/react'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-gsap': ['gsap'],
+        },
+      },
+    },
+  },
 })

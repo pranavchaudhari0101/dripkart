@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
+import { useUser } from '@clerk/react';
 import { Upload, Plus, Trash2, ShoppingBag, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AdminOrders } from '../components/AdminOrders';
 import gsap from 'gsap';
 
 export function Admin() {
-  const { user } = useAuthStore();
+  const { user: authUser } = useAuthStore();
+  const { user: clerkUser, isSignedIn, isLoaded } = useUser();
+
   const [activeTab, setActiveTab] = useState<'orders' | 'products'>('orders');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -59,7 +62,32 @@ export function Admin() {
     finally { setIsLoading(false); }
   };
 
-  if (user?.role !== 'ADMIN') {
+  // Check admin access using both Clerk publicMetadata and synced authStore
+  const isAdmin = clerkUser?.publicMetadata?.role === 'ADMIN' || authUser?.role === 'ADMIN';
+  const userName = clerkUser?.fullName || authUser?.name || 'Admin';
+
+  // Still loading Clerk
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-[#121212] pt-[160px] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#c8ff00] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Not signed in at all
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen bg-[#121212] pt-[160px] px-6 text-center text-white">
+        <h1 className="font-display text-[32px] tracking-tighter uppercase">Sign In Required</h1>
+        <p className="font-body text-white/40 mt-4 max-w-md mx-auto">Please sign in to access the admin dashboard.</p>
+        <Link to="/" className="inline-block mt-8 px-8 py-3 bg-[#c8ff00] text-black font-body font-bold text-[11px] uppercase tracking-[0.2em]">Return Home</Link>
+      </div>
+    );
+  }
+
+  // Signed in but not admin
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-[#121212] pt-[160px] px-6 text-center text-white">
         <h1 className="font-display text-[32px] tracking-tighter uppercase">Access Denied</h1>
@@ -80,7 +108,7 @@ export function Admin() {
           </h1>
           <div className="flex items-center gap-4 mt-8">
             <div className="h-[2px] w-20 bg-[#d1ff00]"></div>
-            <p className="font-body text-white/60 text-[11px] uppercase tracking-[0.3em]">Authorized Session: {user?.name}</p>
+            <p className="font-body text-white/60 text-[11px] uppercase tracking-[0.3em]">Authorized Session: {userName}</p>
           </div>
         </div>
         {success && (

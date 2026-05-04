@@ -122,7 +122,8 @@ export function ProductDetail() {
               </button>
               <img 
                 src={images[activeImageIdx] || images[0]} 
-                alt={product.name} 
+                alt={product.name}
+                decoding="async"
                 className="w-full h-full object-cover" 
               />
               <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8">
