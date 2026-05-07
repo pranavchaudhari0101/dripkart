@@ -14,25 +14,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           unsafe_disableDevelopmentModeWarnings: true,
         },
         elements: {
-          footer: { display: 'none' },
           footerPages: { display: 'none' },
           badge: { display: 'none' },
           internal: { display: 'none' },
         },
         userProfile: {
           elements: {
-            footer: { display: 'none' },
             badge: { display: 'none' },
-          },
-        },
-        signIn: {
-          elements: {
-            footer: { display: 'none' },
-          },
-        },
-        signUp: {
-          elements: {
-            footer: { display: 'none' },
           },
         },
       }}
