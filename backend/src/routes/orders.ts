@@ -80,6 +80,16 @@ router.post('/create', async (c) => {
       }
     }
 
+    // 3b. Invalidate product caches so stock updates are reflected immediately
+    const affectedProductIds: string[] = Array.from(new Set(items.map((i: any) => String(i.productId))))
+    for (const pid of affectedProductIds) {
+      const pRes = await db.select({ slug: products.slug }).from(products).where(eq(products.id, pid)).limit(1)
+      if (pRes[0]?.slug) {
+        await c.env.CACHE.delete(`product:${pRes[0].slug}`)
+      }
+    }
+    await c.env.CACHE.delete('products:all')
+    await c.env.CACHE.delete('products:featured')
 
 
     // 4. Initiate Payment (shipping is now triggered manually by admin)

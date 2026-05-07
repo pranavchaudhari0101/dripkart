@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useUser } from '@clerk/react';
-import { Upload, Plus, Trash2, ShoppingBag, Package } from 'lucide-react';
+import { Upload, Plus, Trash2, ShoppingBag, Package, Boxes } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AdminOrders } from '../components/AdminOrders';
+import { AdminInventory } from '../components/AdminInventory';
 import gsap from 'gsap';
 
 export function Admin() {
   const { user: authUser } = useAuthStore();
   const { user: clerkUser, isSignedIn, isLoaded } = useUser();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'products'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'inventory'>('orders');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -129,12 +130,18 @@ export function Admin() {
           className={`flex items-center gap-3 px-8 py-4 font-body text-[12px] uppercase tracking-[0.2em] font-black transition-all border ${activeTab === 'products' ? 'bg-[#c8ff00] text-black border-[#c8ff00]' : 'glass-dark border-white/10 text-white/60 hover:border-white/30'}`}>
           <Package size={18} />Add Product
         </button>
+        <button onClick={() => setActiveTab('inventory')}
+          className={`flex items-center gap-3 px-8 py-4 font-body text-[12px] uppercase tracking-[0.2em] font-black transition-all border ${activeTab === 'inventory' ? 'bg-[#c8ff00] text-black border-[#c8ff00]' : 'glass-dark border-white/10 text-white/60 hover:border-white/30'}`}>
+          <Boxes size={18} />Inventory
+        </button>
       </div>
 
       {/* Tab Content */}
       <div className="admin-anim">
         {activeTab === 'orders' ? (
           <AdminOrders />
+        ) : activeTab === 'inventory' ? (
+          <AdminInventory />
         ) : (
           /* ═══ PRODUCTS TAB (existing form) ═══ */
           <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">

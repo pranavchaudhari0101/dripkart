@@ -388,4 +388,108 @@ router.patch('/products/:id/featured', async (c) => {
   return c.json({ success: true, isFeatured })
 })
 
+// ═══════════════════════════════════════════════════════════════
+//  INVENTORY MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+// GET /admin/products — List all products with variants (for inventory management)
+router.get('/products', async (c) => {
+  const db = getDb(c.env.DATABASE_URL)
+
+  const allProducts = await db.select().from(products)
+    .orderBy(desc(products.createdAt))
+    .limit(100)
+
+  const productsWithVariants = await Promise.all(allProducts.map(async (p) => {
+    const variants = await db.select().from(productVariants)
+      .where(eq(productVariants.productId, p.id))
+    const imgs = await db.select({ url: productImages.url }).from(productImages)
+      .where(and(eq(productImages.productId, p.id), eq(productImages.isPrimary, true)))
+      .limit(1)
+    
+    const totalStock = variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
+    
+    return {
+      ...p,
+      image: imgs[0]?.url || null,
+      variants,
+      totalStock,
+    }
+  }))
+
+  return c.json(productsWithVariants)
+})
+
+// GET /admin/products/:id/variants — Fetch all variants for a product
+router.get('/products/:id/variants', async (c) => {
+  const productId = c.req.param('id')
+  const db = getDb(c.env.DATABASE_URL)
+
+  const productRes = await db.select().from(products).where(eq(products.id, productId)).limit(1)
+  if (!productRes.length) return c.json({ error: 'Product not found' }, 404)
+
+  const variants = await db.select().from(productVariants)
+    .where(eq(productVariants.productId, productId))
+
+  return c.json({ product: productRes[0], variants })
+})
+
+// PATCH /admin/products/:id/variants — Update stock, add new sizes, deactivate sizes
+router.patch('/products/:id/variants', async (c) => {
+  const productId = c.req.param('id')
+  const db = getDb(c.env.DATABASE_URL)
+
+  const productRes = await db.select({ id: products.id, slug: products.slug })
+    .from(products).where(eq(products.id, productId)).limit(1)
+  if (!productRes.length) return c.json({ error: 'Product not found' }, 404)
+
+  const { variants: variantUpdates } = await c.req.json() as {
+    variants: { id?: string; size: string; stock: number; isActive?: boolean; _delete?: boolean }[]
+  }
+
+  if (!variantUpdates || !Array.isArray(variantUpdates)) {
+    return c.json({ error: 'variants array is required' }, 400)
+  }
+
+  try {
+    for (const v of variantUpdates) {
+      if (v._delete && v.id) {
+        // Delete variant
+        await db.delete(productVariants).where(eq(productVariants.id, v.id))
+      } else if (v.id) {
+        // Update existing variant
+        await db.update(productVariants)
+          .set({
+            stock: v.stock,
+            isActive: v.isActive !== false,
+          })
+          .where(eq(productVariants.id, v.id))
+      } else {
+        // Add new variant
+        await db.insert(productVariants).values({
+          id: `var_${crypto.randomUUID()}`,
+          productId,
+          size: v.size,
+          stock: v.stock,
+          isActive: v.isActive !== false,
+        })
+      }
+    }
+
+    // Invalidate caches
+    await c.env.CACHE.delete('products:all')
+    await c.env.CACHE.delete('products:featured')
+    await c.env.CACHE.delete(`product:${productRes[0].slug}`)
+
+    // Fetch updated variants
+    const updated = await db.select().from(productVariants)
+      .where(eq(productVariants.productId, productId))
+
+    return c.json({ success: true, variants: updated })
+  } catch (err: any) {
+    return c.json({ error: `Inventory update failed: ${err.message}` }, 500)
+  }
+})
+
 export default router
+

@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useCart } from '../context/CartContext';
-import { Heart, ChevronRight } from 'lucide-react';
+import { Heart, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Reviews } from '../components/Reviews';
 
 const PRODUCTS: Record<string, any> = {
@@ -14,16 +14,36 @@ const PRODUCTS: Record<string, any> = {
   'zipup': { id: 'zipup', name: 'Mens Zip-Up Hoodie — Slate', price: 1499, image: '/zipup-hoodie.png', desc: 'Everyday essential zip-up. Features a custom metal zipper.', details: ['Brushed fleece interior', 'YKK metal zipper', 'Regular fit', 'Tonal embroidery'] }
 };
 
-// Convert API sizes object {S: 10, M: 5} to array [{size: 'S', stock: 10}, ...]
-function parseSizes(sizes: any): { size: string; stock: number }[] {
-  if (!sizes) return [];
-  if (Array.isArray(sizes)) return sizes;
-  if (typeof sizes === 'object') {
-    return Object.entries(sizes).map(([size, stock]) => ({
-      size,
-      stock: typeof stock === 'number' ? stock : parseInt(String(stock)) || 0
-    }));
+// Parse variants from multiple possible API shapes
+interface Variant {
+  size: string;
+  stock: number;
+  isActive?: boolean;
+}
+
+function parseVariants(product: any): Variant[] {
+  // Priority 1: product.variants (API response from backend)
+  if (product.variants && Array.isArray(product.variants)) {
+    return product.variants
+      .filter((v: any) => v.isActive !== false) // exclude deactivated
+      .map((v: any) => ({
+        size: v.size,
+        stock: typeof v.stock === 'number' ? v.stock : parseInt(String(v.stock)) || 0,
+        isActive: v.isActive !== false,
+      }));
   }
+
+  // Priority 2: product.sizes (legacy / fallback format {S: 10, M: 5})
+  if (product.sizes) {
+    if (Array.isArray(product.sizes)) return product.sizes;
+    if (typeof product.sizes === 'object') {
+      return Object.entries(product.sizes).map(([size, stock]) => ({
+        size,
+        stock: typeof stock === 'number' ? stock : parseInt(String(stock)) || 0,
+      }));
+    }
+  }
+
   return [];
 }
 
@@ -39,6 +59,13 @@ function getImages(product: any, fallbackImage: string): string[] {
   if (images.length === 0 && product.image) images.push(product.image);
   if (images.length === 0) images.push(fallbackImage);
   return images;
+}
+
+// Stock indicator label
+function getStockLabel(stock: number): { text: string; color: string } {
+  if (stock <= 0) return { text: 'Out of Stock', color: 'text-red-500' };
+  if (stock <= 5) return { text: `${stock} left`, color: 'text-amber-400' };
+  return { text: 'In Stock', color: 'text-emerald-400' };
 }
 
 export function ProductDetail() {
@@ -61,7 +88,7 @@ export function ProductDetail() {
 
   const { addToCart, toggleCart } = useCart();
   
-  const sizes = React.useMemo(() => parseSizes(product.sizes), [product.sizes]);
+  const variants = React.useMemo(() => parseVariants(product), [product.variants, product.sizes]);
   const [size, setSize] = useState('');
   const [qty, setQty] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -70,6 +97,12 @@ export function ProductDetail() {
 
   const images = getImages(product, '/hoodie.png');
 
+  // Derived state
+  const selectedVariant = variants.find(v => v.size === size);
+  const selectedStock = selectedVariant?.stock ?? 0;
+  const totalStock = variants.reduce((sum, v) => sum + v.stock, 0);
+  const isSoldOut = variants.length > 0 && totalStock === 0;
+
   // Reset image idx when product changes
   useEffect(() => {
     setActiveImageIdx(0);
@@ -77,17 +110,27 @@ export function ProductDetail() {
 
   // Set default size to first available
   useEffect(() => {
-    if (sizes.length > 0) {
-      const available = sizes.find(s => s.stock > 0);
-      if (available && (!size || !sizes.find(s => s.size === size && s.stock > 0))) {
+    if (variants.length > 0) {
+      const available = variants.find(s => s.stock > 0);
+      if (available && (!size || !variants.find(s => s.size === size && s.stock > 0))) {
         setSize(available.size);
       } else if (!size) {
-        setSize(sizes[0].size);
+        setSize(variants[0].size);
       }
     } else {
       setSize('');
     }
-  }, [sizes, size]);
+  }, [variants]);
+
+  // Cap qty when size changes or stock updates
+  useEffect(() => {
+    if (selectedStock > 0 && qty > selectedStock) {
+      setQty(selectedStock);
+    }
+    if (selectedStock === 0 && qty > 1) {
+      setQty(1);
+    }
+  }, [size, selectedStock]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -96,6 +139,8 @@ export function ProductDetail() {
     tl.to('.pd-image', { opacity: 1, x: 0, duration: 0.8, startAt: { x: -20 } })
       .to('.pd-info > *', { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, startAt: { y: 10 } }, '-=0.4');
   }, [id]);
+
+  const canAddToCart = size && selectedStock > 0 && qty <= selectedStock;
 
   return (
     <div className="bg-[#121212] min-h-screen text-white">
@@ -131,6 +176,19 @@ export function ProductDetail() {
                   {product.badge || 'Dripkart Exclusive'}
                 </span>
               </div>
+
+              {/* SOLD OUT overlay */}
+              {isSoldOut && (
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-20">
+                  <AlertTriangle size={48} className="text-red-500 mb-4" />
+                  <span className="font-display text-[36px] md:text-[48px] uppercase tracking-tighter font-black text-red-500">
+                    Sold Out
+                  </span>
+                  <span className="font-body text-[11px] text-white/40 uppercase tracking-[0.3em] mt-2">
+                    Check back for restocks
+                  </span>
+                </div>
+              )}
             </div>
             
             {/* Thumbnail Gallery */}
@@ -184,7 +242,7 @@ export function ProductDetail() {
               </p>
 
               {/* Size Selector */}
-              {sizes.length > 0 && (
+              {variants.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <span className="font-body font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-white">Select Size</span>
@@ -196,51 +254,108 @@ export function ProductDetail() {
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-3 md:gap-4">
-                    {sizes.map((s) => (
-                      <button 
-                        key={s.size}
-                        disabled={s.stock === 0}
-                        onClick={() => setSize(s.size)}
-                        className={`min-w-[56px] md:min-w-[70px] h-[46px] md:h-[54px] border font-body text-[12px] md:text-[13px] font-bold transition-all relative ${
-                          size === s.size 
-                            ? 'bg-[#c8ff00] text-black border-[#c8ff00] neon-glow' 
-                            : 'bg-transparent text-white border-white/20 hover:border-white'
-                        } ${s.stock === 0 ? 'opacity-20 cursor-not-allowed line-through' : ''}`}
-                      >
-                        {s.size}
-                      </button>
-                    ))}
+                    {variants.map((v) => {
+                      const stockInfo = getStockLabel(v.stock);
+                      const isSelected = size === v.size;
+                      const isOutOfStock = v.stock <= 0;
+
+                      return (
+                        <button 
+                          key={v.size}
+                          disabled={isOutOfStock}
+                          onClick={() => { setSize(v.size); setQty(1); }}
+                          className={`min-w-[56px] md:min-w-[70px] border font-body transition-all relative flex flex-col items-center py-2 md:py-2.5 px-2 ${
+                            isSelected 
+                              ? 'bg-[#c8ff00] text-black border-[#c8ff00] neon-glow' 
+                              : 'bg-transparent text-white border-white/20 hover:border-white'
+                          } ${isOutOfStock ? 'opacity-30 cursor-not-allowed' : ''}`}
+                        >
+                          <span className={`text-[12px] md:text-[13px] font-bold ${isOutOfStock ? 'line-through' : ''}`}>
+                            {v.size}
+                          </span>
+                          <span className={`text-[8px] md:text-[9px] mt-0.5 font-medium uppercase tracking-wider ${
+                            isSelected 
+                              ? (v.stock <= 5 ? 'text-black/60' : 'text-black/50') 
+                              : stockInfo.color
+                          }`}>
+                            {stockInfo.text}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Quantity */}
-              <div>
-                <span className="block font-body font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-white mb-3 md:mb-4">Quantity</span>
-                <div className="flex items-center glass-dark w-fit h-12 md:h-14 border border-white/10 text-white">
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-12 md:w-14 h-full flex items-center justify-center hover:text-[#d1ff00] transition-colors font-bold text-lg">-</button>
-                  <div className="w-12 md:w-14 h-full flex items-center justify-center font-body text-[13px] md:text-[14px] font-bold border-x border-white/10 uppercase text-white">{qty}</div>
-                  <button onClick={() => setQty(qty + 1)} className="w-12 md:w-14 h-full flex items-center justify-center hover:text-[#d1ff00] transition-colors font-bold text-lg">+</button>
+              {!isSoldOut && (
+                <div>
+                  <div className="flex items-center justify-between mb-3 md:mb-4">
+                    <span className="block font-body font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-white">Quantity</span>
+                    {selectedVariant && selectedStock > 0 && (
+                      <span className={`font-body text-[10px] uppercase tracking-wider font-medium ${
+                        selectedStock <= 5 ? 'text-amber-400' : 'text-white/40'
+                      }`}>
+                        {selectedStock <= 5 ? `Only ${selectedStock} available` : `${selectedStock} available`}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center glass-dark w-fit h-12 md:h-14 border border-white/10 text-white">
+                    <button 
+                      onClick={() => setQty(Math.max(1, qty - 1))} 
+                      className="w-12 md:w-14 h-full flex items-center justify-center hover:text-[#d1ff00] transition-colors font-bold text-lg disabled:opacity-30"
+                      disabled={qty <= 1}
+                    >-</button>
+                    <div className="w-12 md:w-14 h-full flex items-center justify-center font-body text-[13px] md:text-[14px] font-bold border-x border-white/10 uppercase text-white">{qty}</div>
+                    <button 
+                      onClick={() => setQty(Math.min(selectedStock, qty + 1))} 
+                      className="w-12 md:w-14 h-full flex items-center justify-center hover:text-[#d1ff00] transition-colors font-bold text-lg disabled:opacity-30"
+                      disabled={qty >= selectedStock}
+                    >+</button>
+                  </div>
+                  {qty >= selectedStock && selectedStock > 0 && (
+                    <p className="font-body text-[10px] text-amber-400/80 mt-2 uppercase tracking-wider">
+                      Maximum available quantity selected
+                    </p>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* Add to Cart Button */}
               <div className="pt-2 md:pt-4">
-                <button 
-                  onClick={() => {
-                    addToCart({
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      image: images[0],
-                      size: size || (sizes.length > 0 ? sizes[0].size : 'M')
-                    }, qty);
-                    toggleCart();
-                  }}
-                  className="w-full h-14 md:h-16 bg-[#c8ff00] text-black font-body font-black text-[13px] md:text-[15px] uppercase tracking-[0.3em] md:tracking-[0.4em] transition-all hover:brightness-110 active:scale-[0.98] shadow-[0_0_30px_rgba(200,255,0,0.2)]"
-                >
-                  Add to Cart — ₹{(product.price * qty).toLocaleString()}
-                </button>
+                {isSoldOut ? (
+                  <button 
+                    disabled
+                    className="w-full h-14 md:h-16 bg-white/10 text-white/40 font-body font-black text-[13px] md:text-[15px] uppercase tracking-[0.3em] md:tracking-[0.4em] cursor-not-allowed border border-white/10"
+                  >
+                    Sold Out
+                  </button>
+                ) : (
+                  <button 
+                    disabled={!canAddToCart}
+                    onClick={() => {
+                      if (!canAddToCart) return;
+                      addToCart({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image: images[0],
+                        size: size
+                      }, qty);
+                      toggleCart();
+                    }}
+                    className={`w-full h-14 md:h-16 font-body font-black text-[13px] md:text-[15px] uppercase tracking-[0.3em] md:tracking-[0.4em] transition-all active:scale-[0.98] ${
+                      canAddToCart 
+                        ? 'bg-[#c8ff00] text-black hover:brightness-110 shadow-[0_0_30px_rgba(200,255,0,0.2)]' 
+                        : 'bg-white/10 text-white/40 cursor-not-allowed border border-white/10'
+                    }`}
+                  >
+                    {canAddToCart 
+                      ? `Add to Cart — ₹${(product.price * qty).toLocaleString()}`
+                      : 'Select a Size'
+                    }
+                  </button>
+                )}
               </div>
 
               {/* Specs */}
