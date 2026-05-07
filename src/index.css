@@ -118,17 +118,17 @@
 }
 
 /* Hide Clerk "Development mode" badge & footer across ALL components */
-.cl-internal-b3fm6y,
 .cl-userProfile-root + div,
 [class*="cl-internal"] a[href*="clerk.com"],
-.cl-modalContent div[style*="Development mode"],
-div.cl-footer {
+.cl-modalContent div[style*="Development mode"] {
   display: none !important;
 }
 
 /* Target the "Development mode" text directly wherever Clerk renders it */
 .cl-rootBox a[href*="clerk.com"],
 .cl-card + div,
-.cl-profilePage + div {
+.cl-profilePage + div,
+div[data-localization-key*="development"],
+div[data-localization-key*="securedByClerk"] {
   display: none !important;
 }
