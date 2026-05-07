@@ -16,6 +16,28 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         elements: {
           footer: { display: 'none' },
           footerAction: { display: 'none' },
+          footerPages: { display: 'none' },
+          badge: { display: 'none' },
+          internal: { display: 'none' },
+        },
+        userProfile: {
+          elements: {
+            footer: { display: 'none' },
+            footerAction: { display: 'none' },
+            badge: { display: 'none' },
+          },
+        },
+        signIn: {
+          elements: {
+            footer: { display: 'none' },
+            footerAction: { display: 'none' },
+          },
+        },
+        signUp: {
+          elements: {
+            footer: { display: 'none' },
+            footerAction: { display: 'none' },
+          },
         },
       }}
     >

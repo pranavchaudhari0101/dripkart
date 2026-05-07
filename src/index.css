@@ -115,9 +115,24 @@
     @apply bg-[#d1ff00] text-black;
   }
 
-  /* Hide Clerk "Development mode" badge */
-  .cl-internal-b3fm6y,
-  .cl-footer {
-    display: none !important;
-  }
+}
+
+/* Hide Clerk "Development mode" badge & footer across ALL components */
+.cl-footer,
+.cl-footerAction,
+.cl-internal-b3fm6y,
+.cl-userProfile-root + div,
+[class*="cl-internal"] a[href*="clerk.com"],
+.cl-modalContent div[style*="Development mode"],
+div.cl-footer,
+div[class^="cl-footer"],
+div[class*="cl-footer"] {
+  display: none !important;
+}
+
+/* Target the "Development mode" text directly wherever Clerk renders it */
+.cl-rootBox a[href*="clerk.com"],
+.cl-card + div,
+.cl-profilePage + div {
+  display: none !important;
 }
