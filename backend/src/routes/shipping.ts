@@ -1,15 +1,17 @@
 import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import { getDb } from '../db'
 import { orders } from '../db/schema'
 import { eq } from 'drizzle-orm'
 import { checkServiceability, trackOrder, generateLabel } from '../services/shiprocket'
 import { adminOnlyMiddleware } from '../middleware/auth'
+import { shippingCheckSchema } from '../lib/validators'
 import type { Env } from '../types/env'
 
 const router = new Hono<{ Bindings: Env }>()
 
-router.post('/check', async (c) => {
-  const { from, to, weight = 0.5 } = await c.req.json()
+router.post('/check', zValidator('json', shippingCheckSchema), async (c) => {
+  const { from, to, weight = 0.5 } = c.req.valid('json')
   const data = await checkServiceability(from, to, weight, c.env)
   return c.json(data)
 })
@@ -21,6 +23,12 @@ router.get('/track/:awb', async (c) => {
 })
 
 router.post('/webhook', async (c) => {
+  // Verify webhook secret to prevent spoofed status updates
+  const secret = c.req.header('X-Webhook-Secret')
+  if (!secret || secret !== c.env.SHIPPING_WEBHOOK_SECRET) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
   const { awb, current_status, order_id } = await c.req.json()
   const db = getDb(c.env.DATABASE_URL)
 

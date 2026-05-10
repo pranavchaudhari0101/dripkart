@@ -1,14 +1,17 @@
 import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import { getDb } from '../db'
 import { products, productImages, productVariants, orders, orderItems, users } from '../db/schema'
-import { eq, desc, and, sql } from 'drizzle-orm'
+import { eq, desc, and, sql, inArray } from 'drizzle-orm'
 import { authMiddleware, adminOnlyMiddleware } from '../middleware/auth'
 import { uploadImage } from '../services/cloudinary'
 import { createOrder as shiprocketCreateOrder, assignCourier, generateLabel } from '../services/shiprocket'
 import { sendOrderShippedEmail } from '../services/email'
+import { statusUpdateSchema } from '../lib/validators'
+import type { UserContext } from '../middleware/auth'
 import type { Env } from '../types/env'
 
-const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
+const router = new Hono<{ Bindings: Env; Variables: { user: UserContext } }>()
 
 // All routes here require Auth + Admin role
 router.use('/*', authMiddleware)
@@ -22,11 +25,14 @@ function generateSlug(name: string) {
 //  ORDER MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
 
-// GET /admin/orders — List all orders (with optional filters)
+// GET /admin/orders — List all orders (with optional filters) — paginated
 router.get('/orders', async (c) => {
   const db = getDb(c.env.DATABASE_URL)
-  const statusFilter = c.req.query('status') // e.g. 'PAID', 'PROCESSING', 'SHIPPED'
-  const deliveryFilter = c.req.query('delivery') // e.g. 'PROCESSING', 'SHIPPED', 'DELIVERED'
+  const statusFilter = c.req.query('status')
+  const deliveryFilter = c.req.query('delivery')
+  const page = Math.max(1, parseInt(c.req.query('page') || '1', 10))
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20', 10)))
+  const offset = (page - 1) * limit
 
   let allOrders
 
@@ -34,36 +40,49 @@ router.get('/orders', async (c) => {
     allOrders = await db.select().from(orders)
       .where(eq(orders.deliveryStatus, deliveryFilter as any))
       .orderBy(desc(orders.createdAt))
-      .limit(100)
+      .limit(limit)
+      .offset(offset)
   } else if (statusFilter) {
     allOrders = await db.select().from(orders)
       .where(eq(orders.paymentStatus, statusFilter as any))
       .orderBy(desc(orders.createdAt))
-      .limit(100)
+      .limit(limit)
+      .offset(offset)
   } else {
     allOrders = await db.select().from(orders)
       .orderBy(desc(orders.createdAt))
-      .limit(100)
+      .limit(limit)
+      .offset(offset)
   }
 
-  // Attach customer name for each order
-  const ordersWithCustomer = await Promise.all(allOrders.map(async (order) => {
-    const userRes = await db.select({ name: users.name, email: users.email })
-      .from(users)
-      .where(eq(users.id, order.userId))
-      .limit(1)
-    
-    // Count items
-    const itemCount = await db.select({ count: sql<number>`count(*)` })
-      .from(orderItems)
-      .where(eq(orderItems.orderId, order.id))
+  if (allOrders.length === 0) return c.json([])
 
-    return {
-      ...order,
-      customerName: userRes[0]?.name || 'Unknown',
-      customerEmail: userRes[0]?.email || '',
-      itemCount: Number(itemCount[0]?.count || 0),
-    }
+  const userIds = allOrders.map(o => o.userId)
+  const orderIds = allOrders.map(o => o.id)
+
+  // Batch fetch users
+  const userList = await db.select({ id: users.id, name: users.name, email: users.email })
+    .from(users)
+    .where(inArray(users.id, userIds))
+
+  const userMap = new Map(userList.map(u => [u.id, u]))
+
+  // Batch count items per order
+  const itemCounts = await db.select({
+    orderId: orderItems.orderId,
+    count: sql<number>`count(*)`,
+  })
+    .from(orderItems)
+    .where(inArray(orderItems.orderId, orderIds))
+    .groupBy(orderItems.orderId)
+
+  const itemCountMap = new Map(itemCounts.map(r => [r.orderId, Number(r.count)]))
+
+  const ordersWithCustomer = allOrders.map(order => ({
+    ...order,
+    customerName: userMap.get(order.userId)?.name || 'Unknown',
+    customerEmail: userMap.get(order.userId)?.email || '',
+    itemCount: itemCountMap.get(order.id) || 0,
   }))
 
   return c.json(ordersWithCustomer)
@@ -227,20 +246,10 @@ router.patch('/orders/:id/confirm-shipping', async (c) => {
 })
 
 // PATCH /admin/orders/:id/status — Manually override delivery status
-router.patch('/orders/:id/status', async (c) => {
+router.patch('/orders/:id/status', zValidator('json', statusUpdateSchema), async (c) => {
   const orderId = c.req.param('id')
-  const { deliveryStatus: newStatus } = await c.req.json()
+  const { deliveryStatus: newStatus } = c.req.valid('json')
   const db = getDb(c.env.DATABASE_URL)
-
-  const validStatuses = [
-    'PROCESSING', 'PICKUP_SCHEDULED', 'OUT_FOR_PICKUP',
-    'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY',
-    'DELIVERED', 'RETURN_INITIATED', 'RETURNED'
-  ]
-
-  if (!validStatuses.includes(newStatus)) {
-    return c.json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` }, 400)
-  }
 
   const updated = await db.update(orders)
     .set({ deliveryStatus: newStatus as any, updatedAt: new Date() })
@@ -392,30 +401,50 @@ router.patch('/products/:id/featured', async (c) => {
 //  INVENTORY MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
 
-// GET /admin/products — List all products with variants (for inventory management)
+// GET /admin/products — List all products with variants (paginated)
 router.get('/products', async (c) => {
   const db = getDb(c.env.DATABASE_URL)
+  const page = Math.max(1, parseInt(c.req.query('page') || '1', 10))
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20', 10)))
+  const offset = (page - 1) * limit
 
   const allProducts = await db.select().from(products)
     .orderBy(desc(products.createdAt))
-    .limit(100)
+    .limit(limit)
+    .offset(offset)
 
-  const productsWithVariants = await Promise.all(allProducts.map(async (p) => {
-    const variants = await db.select().from(productVariants)
-      .where(eq(productVariants.productId, p.id))
-    const imgs = await db.select({ url: productImages.url }).from(productImages)
-      .where(and(eq(productImages.productId, p.id), eq(productImages.isPrimary, true)))
-      .limit(1)
-    
+  if (allProducts.length === 0) return c.json([])
+
+  const productIds = allProducts.map(p => p.id)
+
+  // Batch fetch variants
+  const allVariants = await db.select().from(productVariants)
+    .where(inArray(productVariants.productId, productIds))
+
+  const variantMap = new Map<string, typeof allVariants>()
+  for (const v of allVariants) {
+    const list = variantMap.get(v.productId) || []
+    list.push(v)
+    variantMap.set(v.productId, list)
+  }
+
+  // Batch fetch primary images
+  const allImages = await db.select({ productId: productImages.productId, url: productImages.url })
+    .from(productImages)
+    .where(and(inArray(productImages.productId, productIds), eq(productImages.isPrimary, true)))
+
+  const imageMap = new Map(allImages.map(img => [img.productId, img.url]))
+
+  const productsWithVariants = allProducts.map(p => {
+    const variants = variantMap.get(p.id) || []
     const totalStock = variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
-    
     return {
       ...p,
-      image: imgs[0]?.url || null,
+      image: imageMap.get(p.id) || null,
       variants,
       totalStock,
     }
-  }))
+  })
 
   return c.json(productsWithVariants)
 })

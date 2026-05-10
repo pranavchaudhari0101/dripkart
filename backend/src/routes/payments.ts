@@ -22,10 +22,36 @@ router.post('/phonepe/callback', async (c) => {
   if (payload.success) {
     const orderId = payload.data.merchantTransactionId
     const transactionId = payload.data.transactionId
-    
+    const paidAmountPaise = payload.data.amount
+
     const db = getDb(c.env.DATABASE_URL)
-    
-    // Update Order Status only if it's not already PAID
+
+    // Verify the order exists and amount matches before marking PAID
+    const orderRes = await db.select({
+      id: orders.id,
+      finalAmount: orders.finalAmount,
+      paymentStatus: orders.paymentStatus,
+      userId: orders.userId,
+      shippingAddress: orders.shippingAddress,
+    }).from(orders).where(eq(orders.id, orderId)).limit(1)
+
+    if (!orderRes.length) {
+      return c.json({ error: 'Order not found' }, 404)
+    }
+
+    const order = orderRes[0]
+    const expectedAmountPaise = Math.round(order.finalAmount * 100)
+
+    if (paidAmountPaise !== expectedAmountPaise) {
+      console.error(`[PhonePe Callback] Amount mismatch for ${orderId}: expected ${expectedAmountPaise} paise, got ${paidAmountPaise} paise`)
+      return c.json({ error: 'Amount mismatch' }, 400)
+    }
+
+    if (order.paymentStatus === 'PAID') {
+      return c.json({ success: true, alreadyPaid: true })
+    }
+
+    // Update Order Status
     const updatedOrder = await db.update(orders)
       .set({ paymentStatus: 'PAID', gatewayTxnId: transactionId, updatedAt: new Date() })
       .where(and(

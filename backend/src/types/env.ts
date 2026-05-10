@@ -3,8 +3,6 @@ import type { KVNamespace } from '@cloudflare/workers-types'
 export interface Env {
   CACHE: KVNamespace
   DATABASE_URL: string
-  JWT_SECRET: string
-  JWT_REFRESH_SECRET: string
   FRONTEND_URL: string
   CLOUDINARY_CLOUD_NAME: string
   CLOUDINARY_API_KEY: string
@@ -23,4 +21,5 @@ export interface Env {
   DEV_SECRET: string
   NODE_ENV?: string
   RESEND_API_KEY: string
+  SHIPPING_WEBHOOK_SECRET: string
 }

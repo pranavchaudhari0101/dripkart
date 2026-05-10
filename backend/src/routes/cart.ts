@@ -1,23 +1,25 @@
 import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import { getDb } from '../db'
 import { carts, cartItems, products } from '../db/schema'
 import { eq, and } from 'drizzle-orm'
 import { authMiddleware } from '../middleware/auth'
+import { cartAddSchema, cartUpdateSchema } from '../lib/validators'
+import type { UserContext } from '../middleware/auth'
 import type { Env } from '../types/env'
 
-const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
+const router = new Hono<{ Bindings: Env; Variables: { user: UserContext } }>()
 
 // All cart routes require a logged-in user
 router.use('/*', authMiddleware)
 
 // Helper: Get or Create User's Cart
-async function getUserCart(db: any, userId: string) {
+async function getUserCart(db: ReturnType<typeof getDb>, userId: string) {
   let userCart = await db.select().from(carts).where(eq(carts.userId, userId)).limit(1)
   if (!userCart.length) {
     const cartId = `crt_${crypto.randomUUID()}`
     await db.insert(carts).values({ id: cartId, userId })
-    // Return mock cart object so rest of flow works exactly same
-    return { id: cartId, userId } 
+    return { id: cartId, userId }
   }
   return userCart[0]
 }
@@ -48,13 +50,13 @@ router.get('/', async (c) => {
   .where(eq(cartItems.cartId, cart.id))
 
   // Calculate totals natively
-  const subtotal = items.reduce((sum: number, item: any) => sum + (item.product.price * item.quantity), 0)
+  const subtotal = items.reduce((sum, item) => sum + ((item.product?.price ?? 0) * item.quantity), 0)
 
   return c.json({ items, subtotal, cartId: cart.id })
 })
 
 // Add item to cart
-router.post('/add', async (c) => {
+router.post('/add', zValidator('json', cartAddSchema), async (c) => {
   const user = c.get('user')
   const { productId, size, quantity = 1 } = await c.req.json()
   const db = getDb(c.env.DATABASE_URL)
@@ -88,25 +90,60 @@ router.post('/add', async (c) => {
   return c.json({ success: true })
 })
 
-// Update quantity
-router.put('/update', async (c) => {
-  const { cartItemId, quantity } = await c.req.json()
+// Update quantity by productId + size (frontend-friendly)
+router.put('/update', zValidator('json', cartAddSchema), async (c) => {
+  const user = c.get('user')
+  const { productId, size, quantity } = c.req.valid('json')
   const db = getDb(c.env.DATABASE_URL)
-  
-  if (quantity <= 0) {
-    await db.delete(cartItems).where(eq(cartItems.id, cartItemId))
-  } else {
-    await db.update(cartItems).set({ quantity }).where(eq(cartItems.id, cartItemId))
+
+  const cart = await getUserCart(db, user.id)
+
+  const existingItemRes = await db.select()
+    .from(cartItems)
+    .where(and(
+      eq(cartItems.cartId, cart.id),
+      eq(cartItems.productId, productId),
+      eq(cartItems.size, size)
+    )).limit(1)
+
+  if (!existingItemRes.length) {
+    return c.json({ error: 'Cart item not found' }, 404)
   }
-  
+
+  if (quantity <= 0) {
+    await db.delete(cartItems).where(eq(cartItems.id, existingItemRes[0].id))
+  } else {
+    await db.update(cartItems).set({ quantity }).where(eq(cartItems.id, existingItemRes[0].id))
+  }
+
   return c.json({ success: true })
 })
 
-// Remove single item
-router.delete('/remove/:id', async (c) => {
-  const id = c.req.param('id')
+// Remove single item by productId + size
+router.delete('/remove', async (c) => {
+  const user = c.get('user')
+  const productId = c.req.query('productId')
+  const size = c.req.query('size')
+
+  if (!productId || !size) {
+    return c.json({ error: 'productId and size query params required' }, 400)
+  }
+
   const db = getDb(c.env.DATABASE_URL)
-  await db.delete(cartItems).where(eq(cartItems.id, id))
+  const cart = await getUserCart(db, user.id)
+
+  const existingItemRes = await db.select({ id: cartItems.id })
+    .from(cartItems)
+    .where(and(
+      eq(cartItems.cartId, cart.id),
+      eq(cartItems.productId, productId),
+      eq(cartItems.size, size)
+    )).limit(1)
+
+  if (existingItemRes.length > 0) {
+    await db.delete(cartItems).where(eq(cartItems.id, existingItemRes[0].id))
+  }
+
   return c.json({ success: true })
 })
 

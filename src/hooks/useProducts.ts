@@ -38,13 +38,16 @@ export function useProducts(featured?: boolean) {
           };
         });
       } catch (error) {
-        console.warn('Failed to fetch products, falling back to mock data:', error);
-        
-        // Filter mock products if "featured" is requested
-        if (featured) {
-          return MOCK_PRODUCTS.filter(p => p.isFeatured);
+        console.warn('Failed to fetch products:', error);
+
+        // Only fall back to mock data in development
+        if (import.meta.env.DEV) {
+          if (featured) {
+            return MOCK_PRODUCTS.filter(p => p.isFeatured);
+          }
+          return MOCK_PRODUCTS;
         }
-        return MOCK_PRODUCTS;
+        throw error;
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

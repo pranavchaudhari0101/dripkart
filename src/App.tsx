@@ -6,6 +6,7 @@ import { Nav } from './components/Nav';
 import { Footer } from './components/Footer';
 import { CartDrawer } from './components/CartDrawer';
 import { AuthSync } from './hooks/useAuthSync';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Lazy load pages for faster initial load
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -57,23 +58,25 @@ function App() {
             <Nav />
             <CartDrawer />
             <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/shop/:id" element={<ProductDetail />} />
-                <Route path="/collections" element={<Collections />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-success" element={<OrderSuccess />} />
-                <Route path="/order-tracking" element={<OrderTracking />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/editorial" element={<Editorial />} />
-                <Route path="/collective" element={<Collective />} />
-                <Route path="/shipping" element={<Shipping />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-              </Routes>
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/shop" element={<Shop />} />
+                  <Route path="/shop/:id" element={<ProductDetail />} />
+                  <Route path="/collections" element={<Collections />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  <Route path="/order-tracking" element={<OrderTracking />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/editorial" element={<Editorial />} />
+                  <Route path="/collective" element={<Collective />} />
+                  <Route path="/shipping" element={<Shipping />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                </Routes>
+              </ErrorBoundary>
             </Suspense>
             <Footer />
           </div>

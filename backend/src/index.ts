@@ -15,15 +15,19 @@ const app = new Hono<{ Bindings: Env }>()
 
 // Global Middleware
 app.use('*', async (c, next) => {
+  const allowedOrigins = [
+    c.env.FRONTEND_URL,
+    'https://dripkarts.vercel.app',
+    'https://dripkart-delta.vercel.app',
+  ].filter(Boolean);
+
   const corsHandler = cors({
     origin: (origin) => {
-      // Allow the configured frontend URL
-      if (origin === c.env.FRONTEND_URL) return origin;
-      // Allow known Vercel deployment URLs
-      if (origin === 'https://dripkarts.vercel.app') return origin;
-      if (origin === 'https://dripkart-delta.vercel.app') return origin;
-      // Default fallback for development
-      return origin?.includes('localhost') || origin?.includes('127.0.0.1') ? origin : c.env.FRONTEND_URL || 'http://localhost:5173';
+      if (!origin) return allowedOrigins[0] || 'http://localhost:5173';
+      if (allowedOrigins.includes(origin)) return origin;
+      // Strict development check
+      if (origin === 'http://localhost:5173' || origin === 'http://127.0.0.1:5173') return origin;
+      return null;
     },
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
@@ -60,11 +64,12 @@ app.route('/api/shipping', shippingRoutes)
 
 // Expose router to Cloudflare
 app.onError((err, c) => {
-  console.error(`[GLOBAL ERROR] ${c.req.method} ${c.req.url}`, err)
-  return c.json({ 
-    error: 'Internal Server Error', 
-    message: err.message,
-    stack: c.env.NODE_ENV === 'development' ? err.stack : undefined
+  console.error(`[GLOBAL ERROR] ${c.req.method} ${c.req.url}`, err.message)
+  const isDev = c.env.NODE_ENV === 'development'
+  return c.json({
+    error: 'Internal Server Error',
+    message: isDev ? err.message : 'An unexpected error occurred',
+    ...(isDev && err.stack ? { stack: err.stack } : {}),
   }, 500)
 })
 

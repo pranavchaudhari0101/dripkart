@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useUser } from '@clerk/react';
@@ -11,6 +11,7 @@ import gsap from 'gsap';
 export function Admin() {
   const { user: authUser } = useAuthStore();
   const { user: clerkUser, isSignedIn, isLoaded } = useUser();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'inventory'>('orders');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,8 +26,14 @@ export function Admin() {
   const [images, setImages] = useState<(File | null)[]>([null, null, null, null, null]);
 
   useEffect(() => {
-    gsap.set('.admin-anim', { opacity: 0, y: 10 });
-    gsap.to('.admin-anim', { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power3.out' });
+    if (!containerRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo('.admin-anim',
+        { y: 10, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power3.out' }
+      );
+    }, containerRef);
+    return () => ctx.revert();
   }, [activeTab]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -99,7 +106,7 @@ export function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white pt-[140px] pb-20 px-6 max-w-[1600px] mx-auto overflow-hidden">
+    <div ref={containerRef} className="min-h-screen bg-[#121212] text-white pt-[140px] pb-20 px-6 max-w-[1600px] mx-auto overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 admin-anim">
         <div>

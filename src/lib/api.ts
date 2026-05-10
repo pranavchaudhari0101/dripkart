@@ -1,26 +1,38 @@
 import axios from 'axios'
 
+interface ClerkSession {
+  getToken: () => Promise<string | null>;
+}
+
+interface ClerkInstance {
+  session?: ClerkSession | null;
+}
+
 declare global {
   interface Window {
-    Clerk?: any;
+    Clerk?: ClerkInstance;
   }
 }
 
-// Create Axios Instance with proper timeout
+const BASE_URL = import.meta.env.VITE_API_URL;
+if (!BASE_URL) {
+  console.warn('VITE_API_URL is not set. API calls may fail.');
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://backend.pranav1727chaudhari.workers.dev/api',
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 8000, // 8 second timeout — fail fast, fallback to mock data
+  timeout: 8000,
 })
 
-// Request Interceptor: Attach Clerk JWT token
 api.interceptors.request.use(
   async (config) => {
     try {
-      if (window.Clerk && window.Clerk.session) {
-        const token = await window.Clerk.session.getToken();
+      const clerk = window.Clerk;
+      if (clerk?.session) {
+        const token = await clerk.session.getToken();
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -30,12 +42,9 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
-// Response Interceptor: Handle 401s
 api.interceptors.response.use(
   (response) => response,
   (error) => {

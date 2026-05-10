@@ -6,13 +6,18 @@ import { authMiddleware } from '../middleware/auth'
 import { createClerkClient } from '@clerk/backend'
 import type { Env } from '../types/env'
 
-const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
+interface UserContext {
+  id: string;
+  role: 'CUSTOMER' | 'ADMIN';
+}
+
+const router = new Hono<{ Bindings: Env; Variables: { user: UserContext } }>()
 
 // Auto-sync or return user
 router.get('/me', authMiddleware, async (c) => {
-  const payload = c.get('user') // { id: sub, role }
+  const payload = c.get('user')
   const db = getDb(c.env.DATABASE_URL)
-  
+
   let userRes = await db.select({
     id: users.id,
     name: users.name,
@@ -30,7 +35,7 @@ router.get('/me', authMiddleware, async (c) => {
       });
 
       const clerkUser = await clerk.users.getUser(payload.id);
-      
+
       const email = clerkUser.emailAddresses[0]?.emailAddress || '';
       const name = clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim() : 'User';
 
@@ -38,19 +43,16 @@ router.get('/me', authMiddleware, async (c) => {
 
       if (existingUser.length > 0) {
         console.log(`[AUTH/SYNC] Found existing user with email ${email}. Migrating to Clerk ID.`);
-        
-        // The old user was likely created by the seeder. It has a cart, but no orders.
-        // We delete the old cart and user, then recreate with the Clerk ID, preserving the role.
+
         await db.delete(carts).where(eq(carts.userId, existingUser[0].id));
         await db.delete(users).where(eq(users.id, existingUser[0].id));
-        
+
         await db.insert(users).values({
           id: payload.id,
           name: existingUser[0].name || name,
           email,
           phone: existingUser[0].phone,
-          password: existingUser[0].password,
-          role: existingUser[0].role // This preserves the ADMIN role!
+          role: existingUser[0].role
         });
       } else {
         await db.insert(users).values({
@@ -58,7 +60,6 @@ router.get('/me', authMiddleware, async (c) => {
           name,
           email,
           phone: null,
-          password: '',
           role: 'CUSTOMER'
         });
       }
@@ -70,7 +71,6 @@ router.get('/me', authMiddleware, async (c) => {
 
       console.log(`[AUTH/SYNC] Created new user and cart for: ${payload.id}`);
 
-      // Re-fetch
       userRes = await db.select({
         id: users.id,
         name: users.name,
@@ -83,7 +83,7 @@ router.get('/me', authMiddleware, async (c) => {
       return c.json({ error: 'Failed to sync user data' }, 500);
     }
   }
-  
+
   return c.json({ user: userRes[0] })
 })
 

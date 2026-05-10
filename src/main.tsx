@@ -10,9 +10,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
       afterSignOutUrl="/"
       appearance={{
-        layout: {
-          unsafe_disableDevelopmentModeWarnings: true,
-        },
         elements: {
           footerPages: { display: 'none' },
           badge: { display: 'none' },

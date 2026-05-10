@@ -29,3 +29,11 @@ dist-ssr
 !.dev.vars.example
 .env*
 !.env.example
+
+# Backend artifacts
+backend/*.txt
+backend/output.txt
+backend/seeder_output.txt
+backend/server_logs*.txt
+backend/tail_output.txt
+backend/test-*.ts

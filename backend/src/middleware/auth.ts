@@ -5,8 +5,13 @@ import { users } from '../db/schema'
 import { eq } from 'drizzle-orm'
 import type { Env } from '../types/env'
 
+export interface UserContext {
+  id: string
+  role: 'CUSTOMER' | 'ADMIN'
+}
+
 type Variables = {
-  user: { id: string; role: 'CUSTOMER' | 'ADMIN' }
+  user: UserContext
 }
 
 export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
@@ -46,20 +51,14 @@ export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: Varia
 
 export const adminOnlyMiddleware = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
   const user = c.get('user')
-  console.log('[ADMIN_DEBUG] User:', JSON.stringify(user));
-  console.log('[ADMIN_DEBUG] User Role:', user?.role);
-  console.log('[ADMIN_DEBUG] Role Type:', typeof user?.role);
 
   if (!user) {
-    console.error('[ADMIN_DEBUG] 403 - No user in context');
     return c.json({ error: 'Forbidden: Admin access required' }, 403)
   }
 
   if (String(user.role).toUpperCase() !== 'ADMIN') {
-    console.error(`[ADMIN_DEBUG] 403 - Role mismatch. Expected ADMIN, got: "${user.role}"`);
     return c.json({ error: 'Forbidden: Admin access required' }, 403)
   }
-  
-  console.log('[ADMIN_DEBUG] 200 - Access granted');
+
   await next()
 })

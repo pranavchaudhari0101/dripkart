@@ -1,29 +1,37 @@
 import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import { getDb } from '../db'
-import { orders, orderItems, products, productVariants, cartItems, carts } from '../db/schema'
-import { eq, and, sql, gte } from 'drizzle-orm'
+import { orders, orderItems, products, productVariants } from '../db/schema'
+import { eq, and, sql } from 'drizzle-orm'
 import { authMiddleware } from '../middleware/auth'
 import { initiatePayment } from '../services/phonepe'
 import { sendOrderConfirmedEmail } from '../services/email'
-
+import { orderCreateSchema } from '../lib/validators'
+import type { UserContext } from '../middleware/auth'
 import type { Env } from '../types/env'
 
-const router = new Hono<{ Bindings: Env; Variables: { user: any } }>()
+const router = new Hono<{ Bindings: Env; Variables: { user: UserContext } }>()
 router.use('/*', authMiddleware)
 
-router.post('/create', async (c) => {
+router.post('/create', zValidator('json', orderCreateSchema), async (c) => {
   const user = c.get('user')
   const { address, items, paymentMethod } = await c.req.json()
   const db = getDb(c.env.DATABASE_URL)
 
   const uuid = crypto.randomUUID().replace(/-/g, '')
-  const orderId = `ord_${uuid.substring(0, 28)}` // Max 32 chars total to safely fit PhonePe's 34 char limit
+  const orderId = `ord_${uuid.substring(0, 28)}`
 
   try {
+    // 1. Pre-validate items (non-transactional read for price computation)
     let totalAmount = 0
-    const orderItemsToInsert = []
+    const validatedItems: Array<{
+      productId: string
+      size: string
+      quantity: number
+      price: number
+      variantId: string
+    }> = []
 
-    // 1. Verify items and stock
     for (const item of items) {
       const productRes = await db.select().from(products)
         .where(eq(products.id, item.productId)).limit(1)
@@ -34,13 +42,15 @@ router.post('/create', async (c) => {
         .limit(1)
       const variant = variantRes[0]
 
-      if (!product || !variant) throw new Error(`Product or variant not found for ${item.productId}`)
-      if (variant.stock < item.quantity) throw new Error(`Insufficient stock for ${product.name} (Size: ${item.size})`)
+      if (!product || !variant) {
+        return c.json({ error: `Product or variant not found for ${item.productId}` }, 400)
+      }
+      if (variant.stock < item.quantity) {
+        return c.json({ error: `Insufficient stock for ${product.name} (Size: ${item.size})` }, 409)
+      }
 
       totalAmount += product.price * item.quantity
-      orderItemsToInsert.push({
-        id: `oi_${crypto.randomUUID()}`,
-        orderId,
+      validatedItems.push({
         productId: item.productId,
         size: item.size,
         quantity: item.quantity,
@@ -51,51 +61,61 @@ router.post('/create', async (c) => {
 
     const isCod = paymentMethod === 'COD'
 
-    // 2. Create Order
-    await db.insert(orders).values({
-      id: orderId,
-      userId: user.id,
-      totalAmount,
-      finalAmount: totalAmount,
-      paymentStatus: 'PENDING',
-      paymentGateway: isCod ? 'cod' : 'phonepe',
-      shippingAddress: address
+    // 2. Atomic transaction: insert order + items + update stock
+    await db.transaction(async (tx) => {
+      // Insert order
+      await tx.insert(orders).values({
+        id: orderId,
+        userId: user.id,
+        totalAmount,
+        finalAmount: totalAmount,
+        paymentStatus: 'PENDING',
+        paymentGateway: isCod ? 'cod' : 'phonepe',
+        shippingAddress: address
+      })
+
+      // Insert order items and update stock atomically
+      for (const item of validatedItems) {
+        await tx.insert(orderItems).values({
+          id: `oi_${crypto.randomUUID()}`,
+          orderId,
+          productId: item.productId,
+          size: item.size,
+          quantity: item.quantity,
+          price: item.price,
+        })
+
+        // Atomic stock decrement with safety check
+        const updateRes = await tx.update(productVariants)
+          .set({ stock: sql`${productVariants.stock} - ${item.quantity}` })
+          .where(and(
+            eq(productVariants.id, item.variantId),
+            sql`${productVariants.stock} >= ${item.quantity}`
+          ))
+          .returning({ id: productVariants.id })
+
+        if (updateRes.length === 0) {
+          throw new Error(`Stock depleted for variant ${item.variantId} during checkout`)
+        }
+      }
     })
 
-    // 3. Insert Items and Update Stock
-    for (const item of orderItemsToInsert) {
-      const { variantId, ...values } = item
-      await db.insert(orderItems).values(values)
-      
-      const updateRes = await db.update(productVariants)
-        .set({ stock: sql`${productVariants.stock} - ${item.quantity}` })
-        .where(and(
-          eq(productVariants.id, variantId),
-          gte(productVariants.stock, item.quantity) // Safety condition
-        ))
-        .returning({ id: productVariants.id })
-      
-      if (updateRes.length === 0) {
-        throw new Error(`Insufficient stock for variant ${variantId} during final update`)
-      }
-    }
+    // 3. Invalidate caches after successful transaction
+    const affectedProductIds = Array.from(new Set(items.map((i: any) => String(i.productId))))
+    await Promise.all([
+      ...affectedProductIds.map(async (pid) => {
+        const pRes = await db.select({ slug: products.slug }).from(products).where(eq(products.id, pid as string)).limit(1)
+        if (pRes[0]?.slug) {
+          await c.env.CACHE.delete(`product:${pRes[0].slug}`)
+        }
+      }),
+      c.env.CACHE.delete('products:all'),
+      c.env.CACHE.delete('products:featured'),
+    ])
 
-    // 3b. Invalidate product caches so stock updates are reflected immediately
-    const affectedProductIds: string[] = Array.from(new Set(items.map((i: any) => String(i.productId))))
-    for (const pid of affectedProductIds) {
-      const pRes = await db.select({ slug: products.slug }).from(products).where(eq(products.id, pid)).limit(1)
-      if (pRes[0]?.slug) {
-        await c.env.CACHE.delete(`product:${pRes[0].slug}`)
-      }
-    }
-    await c.env.CACHE.delete('products:all')
-    await c.env.CACHE.delete('products:featured')
-
-
-    // 4. Initiate Payment (shipping is now triggered manually by admin)
+    // 4. Initiate Payment
     if (isCod) {
-      // Send Order Confirmed Email for COD
-      const email = (address as any)?.email
+      const email = address?.email
       if (email) {
         sendOrderConfirmedEmail(
           email,
@@ -103,8 +123,6 @@ router.post('/create', async (c) => {
           c.env
         ).catch(e => console.error('Failed to send confirmed email (COD):', e))
       }
-
-      // COD: order sits at PROCESSING until admin confirms shipping
       return c.json({ success: true, orderId, paymentUrl: null })
     }
 
@@ -113,6 +131,9 @@ router.post('/create', async (c) => {
 
   } catch (err: any) {
     console.error('Order Creation Error:', err.message, err.stack)
+    if (err.message?.includes('Stock depleted')) {
+      return c.json({ error: 'Some items went out of stock. Please review your cart.' }, 409)
+    }
     return c.json({ error: `Order creation failed: ${err.message}` }, 500)
   }
 })

@@ -25,29 +25,23 @@ export function useAuthSync() {
           const res = await api.get('/auth/me');
           const u = res.data.user;
           if (u) {
-            login(
-              {
-                id: u.id,
-                name: u.name || clerkUser.fullName || 'User',
-                email: u.email || clerkUser.primaryEmailAddress?.emailAddress || '',
-                role: u.role || 'CUSTOMER',
-              },
-              'clerk-managed' // token is managed by Clerk, not stored here
-            );
+            login({
+              id: u.id,
+              name: u.name || clerkUser.fullName || 'User',
+              email: u.email || clerkUser.primaryEmailAddress?.emailAddress || '',
+              role: u.role || 'CUSTOMER',
+            });
             hasSynced.current = true;
           }
         } catch (err) {
           console.warn('[AuthSync] Failed to sync user from backend:', err);
           // Even if backend sync fails, populate basic info from Clerk
-          login(
-            {
-              id: clerkUser.id,
-              name: clerkUser.fullName || 'User',
-              email: clerkUser.primaryEmailAddress?.emailAddress || '',
-              role: (clerkUser.publicMetadata?.role as 'CUSTOMER' | 'ADMIN') || 'CUSTOMER',
-            },
-            'clerk-managed'
-          );
+          login({
+            id: clerkUser.id,
+            name: clerkUser.fullName || 'User',
+            email: clerkUser.primaryEmailAddress?.emailAddress || '',
+            role: (clerkUser.publicMetadata?.role as 'CUSTOMER' | 'ADMIN') || 'CUSTOMER',
+          });
           hasSynced.current = true;
         }
       };

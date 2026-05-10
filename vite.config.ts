@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ["distendedly-nonenlightened-shantay.ngrok-free.dev"],
+    allowedHosts: [".localhost", "127.0.0.1", "::1"],
   },
   build: {
     rollupOptions: {
