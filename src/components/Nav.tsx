@@ -228,11 +228,18 @@ export function Nav() {
                 )}
               </>
             ) : (
-              <SignInButton mode="modal">
-                <button type="button" aria-label="Sign In" className="cursor-pointer hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center">
-                  <User strokeWidth={2.5} size={20} />
-                </button>
-              </SignInButton>
+              <div className="flex items-center gap-3">
+                <SignInButton mode="modal">
+                  <button type="button" aria-label="Sign In" className="cursor-pointer hover:scale-110 hover:text-brand-accentColor transition-all duration-300 flex items-center">
+                    <User strokeWidth={2.5} size={20} />
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button type="button" aria-label="Sign Up" className="cursor-pointer font-body text-[10px] font-bold uppercase tracking-[0.15em] bg-brand-accentColor text-black px-3 py-1.5 rounded-sm hover:brightness-110 transition-all">
+                    Join
+                  </button>
+                </SignUpButton>
+              </div>
             )}
           </div>
 

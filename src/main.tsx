@@ -9,11 +9,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ClerkProvider
       publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
       afterSignOutUrl="/"
+      signUpUrl="/"
+      signInUrl="/"
       appearance={{
         elements: {
           footerPages: { display: 'none' },
           badge: { display: 'none' },
-          internal: { display: 'none' },
         },
         userProfile: {
           elements: {

@@ -3,7 +3,7 @@ import { useCart } from '../context/CartContext';
 import { api } from '../lib/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, AlertCircle, X } from 'lucide-react';
-import { useUser, SignInButton } from '@clerk/react';
+import { useUser, SignInButton, SignUpButton } from '@clerk/react';
 import gsap from 'gsap';
 
 export function Checkout() {
@@ -112,11 +112,18 @@ export function Checkout() {
       <div className="min-h-screen pt-[140px] pb-20 px-4 md:px-6 flex flex-col items-center justify-center text-center bg-gray-50">
         <h1 className="font-display text-[28px] md:text-[40px] mb-4 text-gray-900">Sign In to Continue</h1>
         <p className="font-body text-[14px] text-gray-500 mb-8 max-w-md">Please sign in to your account to proceed with checkout.</p>
-        <SignInButton mode="modal" forceRedirectUrl="/checkout">
-          <button className="px-10 py-4 bg-gray-900 text-white font-body font-black text-[13px] uppercase tracking-[0.3em] rounded-sm hover:bg-[#c8ff00] hover:text-gray-900 transition-all shadow-lg">
-            Sign In to Checkout
-          </button>
-        </SignInButton>
+        <div className="flex flex-col gap-3">
+          <SignInButton mode="modal" forceRedirectUrl="/checkout">
+            <button className="px-10 py-4 bg-gray-900 text-white font-body font-black text-[13px] uppercase tracking-[0.3em] rounded-sm hover:bg-[#c8ff00] hover:text-gray-900 transition-all shadow-lg">
+              Sign In to Checkout
+            </button>
+          </SignInButton>
+          <SignUpButton mode="modal" forceRedirectUrl="/checkout">
+            <button className="px-10 py-4 border-2 border-gray-900 text-gray-900 font-body font-black text-[13px] uppercase tracking-[0.3em] rounded-sm hover:bg-gray-900 hover:text-white transition-all">
+              Create Account
+            </button>
+          </SignUpButton>
+        </div>
         <Link to="/shop" className="mt-4 font-body text-[12px] text-gray-500 uppercase tracking-wider hover:text-gray-900 transition-colors">
           ← Continue Shopping
         </Link>
