@@ -22,7 +22,7 @@ export function Editorial() {
           Editorial
         </h1>
         <p className="editorial-anim font-body text-[14px] md:text-[18px] text-brand-textMuted max-w-[600px] font-medium leading-relaxed">
-          Exploring the intersection of brutalist architecture, digital void, and avant-garde streetwear. This is the visual journal of Dripkart.
+          Exploring the intersection of modern aesthetics, premium craft, and avant-garde streetwear. This is the visual journal of Jwala Creation.
         </p>
       </header>
 

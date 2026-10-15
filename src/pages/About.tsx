@@ -19,7 +19,7 @@ export function About() {
       <div className="px-6 md:px-12 max-w-[1200px] mx-auto">
         <h1 className="about-heading font-display text-[clamp(60px,10vw,140px)] leading-[0.9] font-medium mb-12 overflow-hidden flex flex-col">
           <span>We are</span>
-          <span className="italic self-end pr-8 md:pr-20 text-brand-accentColor drop-shadow-sm">DRIPkaRt.</span>
+          <span className="italic self-end pr-8 md:pr-20 text-brand-accentColor drop-shadow-sm">Jwala Creation.</span>
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center">
@@ -34,7 +34,7 @@ export function About() {
             </h3>
             <div className="space-y-6 font-body text-[15px] leading-[1.8] text-brand-textMuted text-justify">
               <p>
-                DRIPkaRt started with a simple belief: streetwear shouldn't just be clothes; it should be an attitude. We blend high-end fashion sensibilities with raw urban energy to create pieces that speak for themselves.
+                Jwala Creation started with a simple belief: clothing shouldn't just be fabric; it should be an attitude. We blend high-end fashion sensibilities with raw urban energy to create pieces that speak for themselves.
               </p>
               <p>
                 Every fabric is meticulously sourced. Every silhouette is obsessively refined. We don't chase trends—we define our own language.

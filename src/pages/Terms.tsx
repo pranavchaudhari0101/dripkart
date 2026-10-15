@@ -24,14 +24,14 @@ export function Terms() {
         <section className="policy-anim">
           <h2 className="font-display text-[20px] text-brand-textPrimary uppercase tracking-tight mb-4">1. Agreement to Terms</h2>
           <p className="mb-4">
-            By accessing the Dripkart platform, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must immediately disconnect from the platform. We reserve the right to modify these terms at any time without explicit notification.
+            By accessing the Jwala Creation platform, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must immediately disconnect from the platform. We reserve the right to modify these terms at any time without explicit notification.
           </p>
         </section>
 
         <section className="policy-anim">
           <h2 className="font-display text-[20px] text-brand-textPrimary uppercase tracking-tight mb-4">2. Intellectual Property</h2>
           <p className="mb-4">
-            All visual aesthetics, typography, garments, digital assets, and code on this platform are the exclusive property of Dripkart and the Collective. Unauthorized reproduction, modification, or distribution of our aesthetics is strictly prohibited and will be met with immediate legal action.
+            All visual aesthetics, typography, garments, digital assets, and code on this platform are the exclusive property of Jwala Creation and the Collective. Unauthorized reproduction, modification, or distribution of our aesthetics is strictly prohibited and will be met with immediate legal action.
           </p>
         </section>
 
@@ -45,7 +45,7 @@ export function Terms() {
         <section className="policy-anim">
           <h2 className="font-display text-[20px] text-brand-textPrimary uppercase tracking-tight mb-4">4. Resale & Distribution</h2>
           <p className="mb-4">
-            Garments purchased from Dripkart are intended for personal use. We actively monitor and ban known resellers and bots. Accounts suspected of mass purchasing for secondary market exploitation will be permanently banned from the platform.
+            Garments purchased from Jwala Creation are intended for personal use. We actively monitor and ban known resellers and bots. Accounts suspected of mass purchasing for secondary market exploitation will be permanently banned from the platform.
           </p>
         </section>
 

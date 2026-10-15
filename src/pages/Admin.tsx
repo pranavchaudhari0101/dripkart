@@ -112,7 +112,7 @@ export function Admin() {
         <div>
           <span className="text-[#c8ff00] font-body text-[11px] font-bold uppercase tracking-[0.4em] mb-4 block">System Authorization: Layer 01</span>
           <h1 className="font-display text-[56px] md:text-[80px] leading-[0.85] tracking-tighter uppercase font-medium text-white">
-            Drip Command <span className="text-white/40 italic">Center</span>
+            Jwala Command <span className="text-white/40 italic">Center</span>
           </h1>
           <div className="flex items-center gap-4 mt-8">
             <div className="h-[2px] w-20 bg-[#d1ff00]"></div>

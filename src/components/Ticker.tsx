@@ -2,9 +2,9 @@ import { Fragment } from 'react';
 
 export function Ticker() {
   const items = [
-    "New Arrivals", "Premium Streetwear", "Free Shipping Over ₹1999", "Drip Season is Here", "Limited Drops",
-    "New Arrivals", "Premium Streetwear", "Free Shipping Over ₹1999", "Drip Season is Here", "Limited Drops",
-    "New Arrivals", "Premium Streetwear", "Free Shipping Over ₹1999", "Drip Season is Here", "Limited Drops",
+    "New Arrivals", "Premium Streetwear", "Free Shipping Over ₹1999", "Jwala Creation Exclusive", "Limited Drops",
+    "New Arrivals", "Premium Streetwear", "Free Shipping Over ₹1999", "Jwala Creation Exclusive", "Limited Drops",
+    "New Arrivals", "Premium Streetwear", "Free Shipping Over ₹1999", "Jwala Creation Exclusive", "Limited Drops",
   ];
 
   return (

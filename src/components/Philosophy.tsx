@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -34,12 +35,12 @@ export function Philosophy() {
       </h2>
       
       <p className="ph-desc font-body font-light text-[14px] text-brand-textMuted max-w-[420px] leading-[1.8] mb-8">
-        Every piece in our collection is designed to make you feel unstoppable. Premium fabrics, clean cuts, and the kind of drip that speaks before you do.
+        Every piece in our collection is designed to make you feel unstoppable. Premium fabrics, clean cuts, and the kind of style that speaks before you do.
       </p>
       
-      <a href="#shop" className="ph-cta font-body font-medium text-[11px] uppercase tracking-[0.15em] text-brand-textPrimary pb-1 border-b border-brand-textPrimary/20 transition-opacity duration-300 hover:opacity-60">
+      <Link to="/shop" className="ph-cta font-body font-medium text-[11px] uppercase tracking-[0.15em] text-brand-textPrimary pb-1 border-b border-brand-textPrimary/20 transition-opacity duration-300 hover:opacity-60">
         Shop All Collections →
-      </a>
+      </Link>
     </section>
   );
 }

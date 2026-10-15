@@ -141,8 +141,8 @@ export function Nav() {
 
         {/* Center Logo */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <Link to="/" className="font-display text-[22px] md:text-[26px] font-bold tracking-tighter">
-            DRIP<span className="font-light italic">ka</span>Rt
+          <Link to="/" className="font-display text-[20px] md:text-[24px] font-bold tracking-tight uppercase">
+            JWALA <span className="font-light italic text-brand-accentColor">CREATION</span>
           </Link>
         </div>
 
@@ -263,8 +263,8 @@ export function Nav() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />
           <div className="absolute top-0 left-0 w-[280px] h-full bg-white flex flex-col shadow-2xl animate-in slide-in-from-left duration-300">
             <div className="p-6 border-b border-gray-100">
-              <Link to="/" className="font-display text-[24px] font-bold tracking-tighter text-brand-textPrimary" onClick={() => setShowMobileMenu(false)}>
-                DRIP<span className="font-light italic">ka</span>Rt
+              <Link to="/" className="font-display text-[22px] font-bold tracking-tight uppercase text-brand-textPrimary" onClick={() => setShowMobileMenu(false)}>
+                JWALA <span className="font-light italic text-brand-accentColor">CREATION</span>
               </Link>
             </div>
             
@@ -347,8 +347,8 @@ export function Nav() {
       {showSearch && (
         <div className="fixed inset-0 z-[100] flex flex-col bg-white animate-in fade-in duration-300">
           <div className="flex items-center justify-between px-4 md:px-12 py-6 border-b border-gray-100">
-            <Link to="/" onClick={() => setShowSearch(false)} className="font-display text-[22px] md:text-[26px] font-bold tracking-tighter text-brand-textPrimary">
-              DRIP<span className="font-light italic">ka</span>Rt
+            <Link to="/" onClick={() => setShowSearch(false)} className="font-display text-[20px] md:text-[24px] font-bold tracking-tight uppercase text-brand-textPrimary">
+              JWALA <span className="font-light italic text-brand-accentColor">CREATION</span>
             </Link>
             <button 
               onClick={() => setShowSearch(false)}

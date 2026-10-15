@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -58,9 +59,9 @@ export function Hero() {
           Curating the next generation of street-ready silhouettes. A study in form, function, and aesthetic.
         </p>
         
-        <a href="#shop" className="hero-cta inline-block px-8 py-4 border-2 border-white font-body font-black text-[12px] uppercase tracking-[0.3em] text-white transition-all duration-300 hover:bg-brand-accentColor hover:border-brand-accentColor hover:text-brand-textPrimary shadow-2xl">
+        <Link to="/shop" className="hero-cta inline-block px-8 py-4 border-2 border-white font-body font-black text-[12px] uppercase tracking-[0.3em] text-white transition-all duration-300 hover:bg-brand-accentColor hover:border-brand-accentColor hover:text-brand-textPrimary shadow-2xl">
           Enter The Archives
-        </a>
+        </Link>
       </div>
 
       <div className="hero-top-right absolute bottom-12 right-6 md:right-12 hidden md:block">
@@ -68,8 +69,8 @@ export function Hero() {
         <p className="font-display font-black italic text-[14px] text-white leading-[1.6] uppercase tracking-widest">Trending Collection</p>
       </div>
 
-      <div className="hero-wordmark absolute bottom-[-10px] left-6 md:left-12 z-[4] font-display text-[clamp(40px,12vw,72px)] md:text-[clamp(72px,10vw,160px)] font-semibold text-white leading-none pointer-events-none whitespace-nowrap">
-        DRIP<span className="font-light italic text-brand-accentColor">ka</span>Rt
+      <div className="hero-wordmark absolute bottom-[-10px] left-6 md:left-12 z-[4] font-display text-[clamp(36px,10vw,64px)] md:text-[clamp(60px,8vw,140px)] font-semibold text-white leading-none pointer-events-none whitespace-nowrap">
+        JWALA<span className="font-light italic text-brand-accentColor"> CREATION</span>
       </div>
     </section>
   );

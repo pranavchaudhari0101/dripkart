@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const collections = [
-  { title: "ESSENTIALS '26", desc: "The foundational pieces every wardrobe needs. Clean cuts, heavyweight fabrics, permanent drip.", img: "/hero-model.png" },
+  { title: "ESSENTIALS '26", desc: "The foundational pieces every wardrobe needs. Clean cuts, heavyweight fabrics, timeless street style.", img: "/hero-model.png" },
   { title: "NIGHT RUN", desc: "Reflective detailing. Technical fabrics. Built for the city after dark.", img: "/hoodie.png" },
   { title: "CORE CARGO", desc: "Utility re-imagined. 3D pockets, durable twill, and a silhouette that commands attention.", img: "/cargo-shirt.png" },
 ];
@@ -38,7 +38,7 @@ export function Collections() {
     <div ref={containerRef} className="pt-[140px] pb-24 bg-brand-bgPrimary min-h-screen">
       <div className="coll-header text-center mb-20 px-6">
         <h1 className="font-display text-[48px] md:text-[72px] italic leading-none mb-4">Collections</h1>
-        <p className="font-body text-brand-textMuted max-w-[400px] mx-auto">Curated drops representing the pinnacle of DRIPkaRt's design philosophy.</p>
+        <p className="font-body text-brand-textMuted max-w-[400px] mx-auto">Curated drops representing the pinnacle of Jwala Creation's design philosophy.</p>
       </div>
 
       <div className="flex flex-col gap-24 md:gap-40">

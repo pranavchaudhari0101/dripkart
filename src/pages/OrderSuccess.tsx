@@ -61,7 +61,7 @@ export function OrderSuccess() {
             Payment Successful
           </h1>
           <p className="success-anim font-body text-brand-textMuted text-[16px] max-w-[400px] mx-auto mb-8">
-            Your drip is secured and being prepared for dispatch.
+            Your order is secured and being prepared for dispatch.
           </p>
         </>
       ) : status === 'COD_SUCCESS' ? (
@@ -73,7 +73,7 @@ export function OrderSuccess() {
             Order Confirmed
           </h1>
           <p className="success-anim font-body text-brand-textMuted text-[16px] max-w-[400px] mx-auto mb-8">
-            Your Cash on Delivery order is placed. Pay when your drip arrives!
+            Your Cash on Delivery order is placed. Pay when your parcel arrives!
           </p>
         </>
       ) : status === 'FAILED' ? (

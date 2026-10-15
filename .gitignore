@@ -37,3 +37,6 @@ backend/seeder_output.txt
 backend/server_logs*.txt
 backend/tail_output.txt
 backend/test-*.ts
+
+# Local Assets
+colthing photos/

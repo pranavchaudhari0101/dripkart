@@ -40,14 +40,11 @@ export function useProducts(featured?: boolean) {
       } catch (error) {
         console.warn('Failed to fetch products:', error);
 
-        // Only fall back to mock data in development
-        if (import.meta.env.DEV) {
-          if (featured) {
-            return MOCK_PRODUCTS.filter(p => p.isFeatured);
-          }
-          return MOCK_PRODUCTS;
+        // Fall back to catalog data
+        if (featured) {
+          return MOCK_PRODUCTS.filter(p => p.isFeatured);
         }
-        throw error;
+        return MOCK_PRODUCTS;
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

@@ -32,8 +32,8 @@ export function Footer() {
         
         {/* Brand Col */}
         <div>
-          <div className="font-display font-semibold text-[32px] mb-3">
-            DRIP<span className="font-light italic text-brand-accentColor">ka</span>Rt
+          <div className="font-display font-semibold text-[28px] mb-3 uppercase tracking-tight">
+            JWALA <span className="font-light italic text-brand-accentColor">CREATION</span>
           </div>
           <p className="font-display font-medium italic text-[14px] text-white/60 leading-[1.6]">
             Defining the aesthetic boundary.
@@ -72,7 +72,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-white/20 pt-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-        <p className="font-body text-[12px] text-white font-black uppercase tracking-widest">© 2026 DRIPkaRt. Established in the Void.</p>
+        <p className="font-body text-[12px] text-white font-black uppercase tracking-widest">© 2026 Jwala Creation. All rights reserved.</p>
         <p className="font-body text-[12px] text-white font-black uppercase tracking-widest">Authored with ✦ and Heavy CSS.</p>
       </div>
     </footer>

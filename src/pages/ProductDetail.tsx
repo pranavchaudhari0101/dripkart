@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { MOCK_PRODUCTS } from '../lib/mockData';
 import { useCart } from '../context/CartContext';
 import { Heart, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Reviews } from '../components/Reviews';
@@ -44,7 +45,13 @@ function parseVariants(product: any): Variant[] {
     }
   }
 
-  return [];
+  // Default sizes for items without backend inventory
+  return [
+    { size: 'S', stock: 10, isActive: true },
+    { size: 'M', stock: 10, isActive: true },
+    { size: 'L', stock: 10, isActive: true },
+    { size: 'XL', stock: 8, isActive: true },
+  ];
 }
 
 // Get all images from product (API or fallback)
@@ -71,19 +78,42 @@ function getStockLabel(stock: number): { text: string; color: string } {
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   
-  const { data: product = PRODUCTS['hoodie'] } = useQuery({
+  const getFallback = () => {
+    if (!id) return PRODUCTS['hoodie'];
+    const foundMock = MOCK_PRODUCTS.find(p => p.id === id || p.slug === id);
+    if (foundMock) {
+      return {
+        ...foundMock,
+        desc: foundMock.description,
+        details: [
+          '100% High-Grade Fabric',
+          'Tailored comfort silhouette',
+          'Signature Jwala Creation finishing',
+          'Machine washable, preshrunk'
+        ]
+      };
+    }
+    return PRODUCTS[id] || PRODUCTS['hoodie'];
+  };
+
+  const { data: product = getFallback() } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
-      const res = await api.get(`/products/${id}`);
-      const fallback = id && PRODUCTS[id] ? PRODUCTS[id] : PRODUCTS['hoodie'];
-      return {
-        ...res.data,
-        image: res.data.images?.[0]?.url || fallback?.image || '/hoodie.png',
-        desc: res.data.description || fallback?.desc,
-        details: fallback?.details || ['Premium quality materials', 'Designed for comfort']
-      };
+      const fallback = getFallback();
+      try {
+        const res = await api.get(`/products/${id}`);
+        return {
+          ...fallback,
+          ...res.data,
+          image: res.data.images?.[0]?.url || fallback?.image || '/hoodie.png',
+          desc: res.data.description || fallback?.desc,
+          details: fallback?.details || ['100% High-Grade Fabric', 'Signature Jwala Creation finishing']
+        };
+      } catch (err) {
+        return fallback;
+      }
     },
-    initialData: id && PRODUCTS[id] ? PRODUCTS[id] : PRODUCTS['hoodie'],
+    initialData: getFallback,
   });
 
   const { addToCart, toggleCart } = useCart();
@@ -173,7 +203,7 @@ export function ProductDetail() {
               />
               <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8">
                 <span className="px-3 py-1.5 md:px-4 md:py-2 glass-dark border border-white/10 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em]">
-                  {product.badge || 'Dripkart Exclusive'}
+                  {product.badge || 'Jwala Creation Exclusive'}
                 </span>
               </div>
 
@@ -223,7 +253,7 @@ export function ProductDetail() {
           <div className="lg:col-span-5 lg:sticky lg:top-[140px] pd-info">
             <div className="space-y-6 md:space-y-8">
               <div>
-                <span className="inline-block text-[#c8ff00] font-body text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] mb-3 md:mb-4">Dripkart Exclusive</span>
+                <span className="inline-block text-[#c8ff00] font-body text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] mb-3 md:mb-4">Jwala Creation Exclusive</span>
                 <h1 className="font-display font-medium text-[28px] md:text-[56px] leading-[0.95] tracking-tight uppercase mb-3 md:mb-4">
                   {product.name}
                 </h1>

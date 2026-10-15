@@ -52,7 +52,7 @@ export function Shop() {
     return '/hoodie.png';
   };
 
-  const categories = ['All', 'Tees', 'Hoodies', 'Outerwear', 'Bottoms'];
+  const categories = ['All', 'Shirts', 'Tees', 'Kids', 'Bottoms', 'Hoodies', 'Outerwear'];
 
   return (
     <div ref={gridRef} className="pt-[120px] md:pt-[140px] pb-20 px-4 md:px-12 min-h-screen bg-brand-bgPrimary">

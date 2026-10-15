@@ -50,7 +50,7 @@ export function Shipping() {
         <section className="policy-anim">
           <h2 className="font-display text-[20px] text-brand-textPrimary uppercase tracking-tight mb-4">4. Customs & Import Tariffs</h2>
           <p className="mb-4">
-            For international vectors, the recipient is strictly responsible for any local customs duties, taxes, or import tariffs. Dripkart does not artificially deflate invoice values to circumvent local taxation protocols. Refusal to pay customs will result in the package being abandoned in the void, with no refund issued.
+            For international vectors, the recipient is strictly responsible for any local customs duties, taxes, or import tariffs. Jwala Creation does not artificially deflate invoice values to circumvent local taxation protocols. Refusal to pay customs will result in the package being returned, with no refund issued.
           </p>
         </section>
       </div>

@@ -30,7 +30,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 function loadLocalCart(): CartItem[] {
   try {
-    const saved = localStorage.getItem('dripkart-cart');
+    const saved = localStorage.getItem('jwalacreation-cart') || localStorage.getItem('dripkart-cart');
     return saved ? JSON.parse(saved) : [];
   } catch (e) {
     console.error('Failed to load cart from storage', e);
@@ -39,7 +39,7 @@ function loadLocalCart(): CartItem[] {
 }
 
 function saveLocalCart(items: CartItem[]) {
-  localStorage.setItem('dripkart-cart', JSON.stringify(items));
+  localStorage.setItem('jwalacreation-cart', JSON.stringify(items));
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {

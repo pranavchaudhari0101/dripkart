@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Heart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '../context/CartContext';
@@ -51,9 +51,9 @@ export function ProductGrid() {
         <h2 className="section-title font-display font-normal italic text-[38px] text-brand-textPrimary">
           New Arrival
         </h2>
-        <a href="#shop" className="font-body font-medium text-[11px] uppercase tracking-[0.12em] text-brand-textPrimary opacity-50 hover:opacity-100 transition-opacity">
+        <Link to="/shop" className="font-body font-medium text-[11px] uppercase tracking-[0.12em] text-brand-textPrimary opacity-50 hover:opacity-100 transition-opacity">
           View all ›
-        </a>
+        </Link>
       </div>
 
       <div className="product-grid grid grid-cols-2 md:grid-cols-4 gap-[2px]">
