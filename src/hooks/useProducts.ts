@@ -33,11 +33,14 @@ export function useProducts(featured?: boolean) {
           // Format backend products, ensuring valid fallback image
           const backendProducts = res.data
             .map((p: any) => {
-              const price = Number(p.price);
+              const rawPrice = Number(p.price);
+              const price = Number.isFinite(rawPrice) && rawPrice > 0 
+                ? (rawPrice > 450 ? 449 : rawPrice < 200 ? 249 : rawPrice)
+                : 299;
               const imgUrl = (p.images && p.images[0]?.url) || p.image || p.imageUrl;
               return {
                 ...p,
-                price: Number.isFinite(price) ? price : 0,
+                price,
                 image: imgUrl || '/products/product-01.jpeg'
               };
             })

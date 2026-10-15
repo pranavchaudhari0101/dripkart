@@ -2,12 +2,12 @@ import type { Product } from '../hooks/useProducts';
 
 export const MOCK_PRODUCTS: Product[] = [
   // ═══════════════════════════════════════════════════════════
-  //  MEN'S DENIM SHIRTS (photos 01–11)
+  //  MEN'S DENIM SHIRTS (photos 01–11) — Price: ₹399 - ₹449
   // ═══════════════════════════════════════════════════════════
   {
     id: 'denim-shirt-washed',
     name: 'Mens Premium Washed Denim Shirt — Ice Blue',
-    price: 1299,
+    price: 429,
     slug: 'denim-shirt-washed',
     category: 'shirts',
     description: 'Classic acid-washed denim shirt with dual flap pockets. Roll-up sleeves with a relaxed fit for effortless street style.',
@@ -19,7 +19,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'denim-shirt-light',
     name: 'Mens Slim Fit Denim Shirt — Sky Wash',
-    price: 1199,
+    price: 399,
     slug: 'denim-shirt-light',
     category: 'shirts',
     description: 'Lightweight denim shirt in a light sky wash. Single pocket design with button-down collar.',
@@ -29,7 +29,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'denim-shirt-dual-pocket',
     name: 'Mens Denim Shirt — Double Pocket Blue',
-    price: 1399,
+    price: 449,
     slug: 'denim-shirt-dual-pocket',
     category: 'shirts',
     description: 'Heavy-duty denim shirt featuring twin buttoned chest pockets. Acid wash finish with a rugged silhouette.',
@@ -40,12 +40,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  GIRLS' GRAPHIC TEE + CARGO JOGGER SETS (photos 12–14)
+  //  GIRLS' GRAPHIC TEE + CARGO JOGGER SETS (photos 12–14) — Price: ₹299
   // ═══════════════════════════════════════════════════════════
   {
     id: 'girls-floral-tee-set-lavender',
     name: 'Girls Graphic Tee & Cargo Jogger Set — Lavender',
-    price: 899,
+    price: 299,
     slug: 'girls-floral-tee-set-lavender',
     category: 'kids',
     description: 'Adorable graphic print tee paired with lavender cargo joggers. Soft cotton blend with elastic waistband.',
@@ -57,7 +57,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'girls-floral-tee-set-white',
     name: 'Girls Floral Art Tee & Cargo Set — White/Lilac',
-    price: 899,
+    price: 299,
     slug: 'girls-floral-tee-set-white',
     category: 'kids',
     description: 'White tee with stunning floral hair art print, paired with lavender cargo joggers. Perfect for trendy kids.',
@@ -66,12 +66,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  BOYS' GRAPHIC T-SHIRT + JOGGER SETS (photos 15–23)
+  //  BOYS' GRAPHIC T-SHIRT + JOGGER SETS (photos 15–23) — Price: ₹349 - ₹399
   // ═══════════════════════════════════════════════════════════
   {
     id: 'boys-bear-tee-set',
     name: 'Boys Perpetual Bear Tee & Jogger Set — Black/Khaki',
-    price: 999,
+    price: 349,
     slug: 'boys-bear-tee-set',
     category: 'kids',
     description: 'Trendy bear graphic tee with "Perpetual" print, paired with khaki drawstring joggers. Premium streetwear for kids.',
@@ -83,7 +83,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'boys-embossed-letter-set',
     name: 'Boys Embossed Letter Sweatshirt & Jogger Set — Black',
-    price: 1199,
+    price: 399,
     slug: 'boys-embossed-letter-set',
     category: 'kids',
     description: 'Premium embossed letter texture sweatshirt with matching joggers. Green "C" chenille patch detail.',
@@ -92,12 +92,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  KIDS' BUNNY SWEATSHIRT SETS (photos 24–32)
+  //  KIDS' BUNNY SWEATSHIRT SETS (photos 24–32) — Price: ₹279
   // ═══════════════════════════════════════════════════════════
   {
     id: 'kids-bunny-set-red',
     name: 'Kids Bunny Sweatshirt & Happy Jogger Set — Maroon',
-    price: 849,
+    price: 279,
     slug: 'kids-bunny-set-red',
     category: 'kids',
     description: 'Cute bunny graphic sweatshirt in maroon with matching "HAPPY" print black joggers. Fleece lined for warmth.',
@@ -107,7 +107,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'kids-bunny-set-green',
     name: 'Kids Bunny Sweatshirt & Happy Jogger Set — Mint Green',
-    price: 849,
+    price: 279,
     slug: 'kids-bunny-set-green',
     category: 'kids',
     description: 'Adorable bunny graphic sweatshirt in mint green with matching "HAPPY" print black joggers. Soft fleece interior.',
@@ -116,12 +116,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  KIDS' SMILE SWEATSHIRT SET (photos 33–35)
+  //  KIDS' SMILE SWEATSHIRT SET (photos 33–35) — Price: ₹289
   // ═══════════════════════════════════════════════════════════
   {
     id: 'kids-smile-sweatshirt-set',
     name: 'Kids Smile Sunflower Sweatshirt & Jogger Set — Pink',
-    price: 899,
+    price: 289,
     slug: 'kids-smile-sweatshirt-set',
     category: 'kids',
     description: 'Pink sweatshirt with cute sunflower girl "Smile" graphic. Paired with matching black printed joggers.',
@@ -132,12 +132,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  KIDS' PARROT TROPICAL SET (photos 36–41)
+  //  KIDS' PARROT TROPICAL SET (photos 36–41) — Price: ₹299
   // ═══════════════════════════════════════════════════════════
   {
     id: 'kids-parrot-set-pink',
     name: 'Kids Tropical Parrot Sweatshirt Set — Pink',
-    price: 949,
+    price: 299,
     slug: 'kids-parrot-set-pink',
     category: 'kids',
     description: 'Vibrant tropical parrot graphic sweatshirt in pink with matching black joggers. Bold floral artwork.',
@@ -147,7 +147,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'kids-parrot-set-white',
     name: 'Kids Tropical Parrot Sweatshirt Set — White',
-    price: 949,
+    price: 299,
     slug: 'kids-parrot-set-white',
     category: 'kids',
     description: 'Colorful tropical parrot graphic on white sweatshirt with matching black joggers. Eye-catching design.',
@@ -156,12 +156,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  MEN'S DRAWSTRING PANTS — FEIN (photo 63–65)
+  //  MEN'S DRAWSTRING PANTS — FEIN (photo 63–65) — Price: ₹449
   // ═══════════════════════════════════════════════════════════
   {
     id: 'fein-drawstring-pants',
     name: 'Mens FEIN Drawstring Pants — Olive Khaki',
-    price: 1599,
+    price: 449,
     slug: 'fein-drawstring-pants',
     category: 'bottoms',
     description: 'Premium technical fabric drawstring pants with elastic waistband and button closure. Available in khaki, grey, and black.',
@@ -172,12 +172,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  MEN'S POLO T-SHIRTS (photos 66–80)
+  //  MEN'S POLO T-SHIRTS (photos 66–80) — Price: ₹349 - ₹399
   // ═══════════════════════════════════════════════════════════
   {
     id: 'polo-flower-embro',
     name: 'Mens Flower Embroidery Polo — Khaki',
-    price: 1099,
+    price: 349,
     slug: 'polo-flower-embro',
     category: 'tees',
     description: 'Premium polo T-shirt with flower embroidery detail and contrast striped collar. Available in khaki, brown, and black.',
@@ -189,7 +189,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'polo-lv-gold-collar',
     name: 'Mens LV Gold Collar Polo — Multi Color',
-    price: 1299,
+    price: 399,
     slug: 'polo-lv-gold-collar',
     category: 'tees',
     description: 'Elegant polo with gold accent collar trim and "Mature" branding. Available in sage, mint, lavender, orange, and dusty rose.',
@@ -201,7 +201,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'polo-atlas',
     name: 'Mens Atlas Jacquard Polo — Maroon',
-    price: 1199,
+    price: 369,
     slug: 'polo-atlas',
     category: 'tees',
     description: 'Textured jacquard polo with embroidered collar detail. Available in maroon, cream, charcoal, and camel.',
@@ -211,7 +211,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'polo-kaashmiri',
     name: 'Mens Kaashmiri Print Polo — White/Grey',
-    price: 1399,
+    price: 399,
     slug: 'polo-kaashmiri',
     category: 'tees',
     description: 'Artistic Kashmiri-inspired printed polo with geometric collar pattern. Premium lightweight cotton blend.',
@@ -223,7 +223,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'polo-snowfall',
     name: 'Mens Snowfall Polo — Olive',
-    price: 1199,
+    price: 349,
     slug: 'polo-snowfall',
     category: 'tees',
     description: 'Sleek polo with contrast trim collar in the "Snowfall" collection. Available in olive, black, mustard, and cream.',
@@ -232,12 +232,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  MEN'S CASUAL DRAWSTRING PANTS (photo 81)
+  //  MEN'S CASUAL DRAWSTRING PANTS (photo 81) — Price: ₹429
   // ═══════════════════════════════════════════════════════════
   {
     id: 'casual-drawstring-pants',
     name: 'Mens Premium Drawstring Casual Pants — Multi',
-    price: 1499,
+    price: 429,
     slug: 'casual-drawstring-pants',
     category: 'bottoms',
     description: 'Relaxed fit casual pants with contrast drawstring. Available in navy, beige, grey, khaki, and brown.',
@@ -246,12 +246,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  MEN'S GRAPHIC TEES (photos 82–96)
+  //  MEN'S GRAPHIC TEES (photos 82–96) — Price: ₹249 - ₹349
   // ═══════════════════════════════════════════════════════════
   {
     id: 'vengeance-acid-tee',
     name: 'Mens Vengeance Wolf Acid Wash Tee — Black',
-    price: 899,
+    price: 249,
     slug: 'vengeance-acid-tee',
     category: 'tees',
     description: 'Bold "Vengeance" wolf graphic on acid wash black oversized tee. Gothic typography with raw streetwear energy.',
@@ -263,7 +263,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'collar-tee-embroidered',
     name: 'Mens Embroidered Collar T-Shirt — Multi',
-    price: 999,
+    price: 299,
     slug: 'collar-tee-embroidered',
     category: 'tees',
     description: 'Premium collar T-shirt with delicate embroidery details. Soft cotton pique fabric with contrast trim.',
@@ -273,7 +273,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'textured-polo-classic',
     name: 'Mens Classic Textured Polo — Multi',
-    price: 1049,
+    price: 329,
     slug: 'textured-polo-classic',
     category: 'tees',
     description: 'Classic textured polo with button-down collar and subtle branding. Premium breathable fabric.',
@@ -283,7 +283,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'premium-polo-stripe-collar',
     name: 'Mens Stripe Collar Polo — Multi',
-    price: 1099,
+    price: 349,
     slug: 'premium-polo-stripe-collar',
     category: 'tees',
     description: 'Premium polo with striped collar detail and logo embroidery. Clean, minimal design for everyday wear.',
@@ -293,7 +293,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'polo-minimal-badge',
     name: 'Mens Minimal Badge Polo — Multi',
-    price: 999,
+    price: 299,
     slug: 'polo-minimal-badge',
     category: 'tees',
     description: 'Clean minimal polo with small badge embroidery. Relaxed fit with ribbed collar and cuffs.',
@@ -302,12 +302,12 @@ export const MOCK_PRODUCTS: Product[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  //  ORIGINAL PRODUCTS (keeping a few favorites)
+  //  ORIGINAL PRODUCTS — Price: ₹249 - ₹449
   // ═══════════════════════════════════════════════════════════
   {
     id: 'hoodie',
     name: 'Mens Premium Oversized Hoodie',
-    price: 1299,
+    price: 449,
     slug: 'hoodie',
     category: 'hoodies',
     description: 'Heavyweight loopback cotton. Dropped shoulders, relaxed fit.',
@@ -317,7 +317,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'cargo',
     name: 'Mens Cargo Shirt — Cream',
-    price: 1099,
+    price: 399,
     slug: 'cargo',
     category: 'shirts',
     description: 'Utility meets luxury. Multiple 3D pockets with a boxy silhouette.',
@@ -327,7 +327,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'drop',
     name: 'Premium Urban Drop Tee',
-    price: 799,
+    price: 249,
     slug: 'drop',
     category: 'tees',
     description: 'The perfect essential drop-shoulder tee. Ultra-soft.',
@@ -337,7 +337,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'cargo-shadow',
     name: 'Cargo Pants — Shadow Black',
-    price: 2499,
+    price: 449,
     slug: 'cargo-shadow',
     category: 'bottoms',
     description: 'Premium heavyweight cargo pants with utility pockets and a relaxed silhouette.',
@@ -347,7 +347,7 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: 'utility-vest',
     name: 'Utility Vest — Desert Sand',
-    price: 3299,
+    price: 449,
     slug: 'utility-vest',
     category: 'outerwear',
     description: 'Technical utility vest with multiple tactical pockets and premium hardware.',

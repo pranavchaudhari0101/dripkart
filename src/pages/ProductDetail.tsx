@@ -9,10 +9,10 @@ import { Heart, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Reviews } from '../components/Reviews';
 
 const PRODUCTS: Record<string, any> = {
-  'hoodie': { id: 'hoodie', name: 'Mens Premium Oversized Hoodie', price: 1299, image: '/hoodie.png', desc: 'Heavyweight loopback cotton. Dropped shoulders, relaxed fit.', details: ['100% Organic Cotton', '450gsm heavyweight fabric', 'Kangaroo pocket', 'Ribbed trims'] },
-  'cargo': { id: 'cargo', name: 'Mens Cargo Shirt — Cream', price: 1099, image: '/cargo-shirt.png', desc: 'Utility meets luxury. Multiple 3D pockets with a boxy silhouette.', details: ['100% Cotton Twill', '4 utility chest pockets', 'Boxy fit', 'Branded buttons'] },
-  'drop': { id: 'drop', name: 'Premium Urban Drop Tee', price: 799, image: '/drop-tee.png', desc: 'The perfect essential drop-shoulder tee. Ultra-soft.', details: ['Interlock jersey', 'Ribbed crewneck', 'Drop shoulders', 'Subtle branding'] },
-  'zipup': { id: 'zipup', name: 'Mens Zip-Up Hoodie — Slate', price: 1499, image: '/zipup-hoodie.png', desc: 'Everyday essential zip-up. Features a custom metal zipper.', details: ['Brushed fleece interior', 'YKK metal zipper', 'Regular fit', 'Tonal embroidery'] }
+  'hoodie': { id: 'hoodie', name: 'Mens Premium Oversized Hoodie', price: 449, image: '/hoodie.png', desc: 'Heavyweight loopback cotton. Dropped shoulders, relaxed fit.', details: ['100% Organic Cotton', '450gsm heavyweight fabric', 'Kangaroo pocket', 'Ribbed trims'] },
+  'cargo': { id: 'cargo', name: 'Mens Cargo Shirt — Cream', price: 399, image: '/cargo-shirt.png', desc: 'Utility meets luxury. Multiple 3D pockets with a boxy silhouette.', details: ['100% Cotton Twill', '4 utility chest pockets', 'Boxy fit', 'Branded buttons'] },
+  'drop': { id: 'drop', name: 'Premium Urban Drop Tee', price: 249, image: '/drop-tee.png', desc: 'The perfect essential drop-shoulder tee. Ultra-soft.', details: ['Interlock jersey', 'Ribbed crewneck', 'Drop shoulders', 'Subtle branding'] },
+  'zipup': { id: 'zipup', name: 'Mens Zip-Up Hoodie — Slate', price: 449, image: '/zipup-hoodie.png', desc: 'Everyday essential zip-up. Features a custom metal zipper.', details: ['Brushed fleece interior', 'YKK metal zipper', 'Regular fit', 'Tonal embroidery'] }
 };
 
 // Parse variants from multiple possible API shapes
