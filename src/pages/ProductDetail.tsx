@@ -199,6 +199,9 @@ export function ProductDetail() {
                 src={images[activeImageIdx] || images[0]} 
                 alt={product.name}
                 decoding="async"
+                onError={(e) => {
+                  e.currentTarget.src = '/products/product-01.jpeg';
+                }}
                 className="w-full h-full object-cover" 
               />
               <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8">

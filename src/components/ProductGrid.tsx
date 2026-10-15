@@ -80,6 +80,12 @@ export function ProductGrid() {
                 alt={p.name}
                 loading="lazy"
                 decoding="async"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes('product-01.jpeg')) {
+                    target.src = '/products/product-01.jpeg';
+                  }
+                }}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-105" 
               />
 

@@ -44,12 +44,12 @@ export function Shop() {
     return matchesCategory && matchesSearch;
   });
 
-  // Helper to get best image
+  // Helper to get best image with reliable fallback
   const getImage = (p: any) => {
     if (p.images && p.images.length > 0 && p.images[0].url) return p.images[0].url;
     if (p.image) return p.image;
     if (p.imageUrl) return p.imageUrl;
-    return '/hoodie.png';
+    return '/products/product-01.jpeg';
   };
 
   const categories = ['All', 'Shirts', 'Tees', 'Kids', 'Bottoms', 'Hoodies', 'Outerwear'];
@@ -58,10 +58,21 @@ export function Shop() {
     <div ref={gridRef} className="pt-[120px] md:pt-[140px] pb-20 px-4 md:px-12 min-h-screen bg-brand-bgPrimary">
       
       {/* Header */}
-      <div className="shop-header mb-6 md:mb-10">
-        <h1 className="font-display text-[32px] md:text-[48px] italic border-b border-brand-textPrimary/20 pb-4 uppercase tracking-tighter text-brand-textPrimary">
-          {searchQuery ? `Results for "${searchQuery}"` : 'Shop'}
-        </h1>
+      <div className="shop-header mb-6 md:mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-brand-textPrimary/20 pb-4">
+        <div>
+          <h1 className="font-display text-[32px] md:text-[48px] italic uppercase tracking-tighter text-brand-textPrimary">
+            {searchQuery ? `Results for "${searchQuery}"` : 'Shop All Products'}
+          </h1>
+          <p className="font-body text-[12px] text-brand-textMuted uppercase tracking-wider mt-1">
+            Showing {filteredProducts.length} pieces from Jwala Creation
+          </p>
+        </div>
+        <Link 
+          to="/collections#lookbook" 
+          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-accentColor/10 border border-brand-accentColor/40 text-brand-textPrimary font-body text-[11px] font-bold uppercase tracking-wider rounded-sm hover:bg-brand-accentColor transition-colors w-fit"
+        >
+          View Full 96-Photo Lookbook Archive →
+        </Link>
       </div>
 
       {/* Mobile: Horizontal pill categories */}
@@ -132,6 +143,12 @@ export function Shop() {
                         alt={p.name}
                         loading="lazy"
                         decoding="async"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.src.includes('product-01.jpeg')) {
+                            target.src = '/products/product-01.jpeg';
+                          }
+                        }}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-105" 
                       />
 
