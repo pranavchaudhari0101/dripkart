@@ -78,6 +78,25 @@
     @apply bg-background text-foreground;
   }
 
+  /* Prevent horizontal overflow on mobile (clip keeps position:sticky working) */
+  html,
+  body,
+  #root {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  img {
+    min-height: 1px;
+  }
+
   /* GSAP Utilities */
   .gsap-reveal {
     opacity: 0;

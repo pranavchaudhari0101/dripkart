@@ -140,14 +140,14 @@ export function Nav() {
         </button>
 
         {/* Center Logo */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <Link to="/" className="font-display text-[20px] md:text-[24px] font-bold tracking-tight uppercase">
+        <div className="flex-1 min-w-0 flex justify-center md:flex-none md:absolute md:left-1/2 md:-translate-x-1/2">
+          <Link to="/" className="font-display text-[15px] sm:text-[20px] md:text-[24px] font-bold tracking-tight uppercase whitespace-nowrap">
             JWALA <span className="font-light italic text-brand-accentColor">CREATION</span>
           </Link>
         </div>
 
         {/* Right Icons */}
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4 md:gap-6 flex-shrink-0">
           <button 
             onClick={() => setShowSearch(true)}
             className="hover:scale-110 hover:text-brand-accentColor transition-all duration-300"
@@ -235,7 +235,7 @@ export function Nav() {
                   </button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <button type="button" aria-label="Sign Up" className="cursor-pointer font-body text-[10px] font-bold uppercase tracking-[0.15em] bg-brand-accentColor text-black px-3 py-1.5 rounded-sm hover:brightness-110 transition-all">
+                  <button type="button" aria-label="Sign Up" className="hidden sm:block cursor-pointer font-body text-[10px] font-bold uppercase tracking-[0.15em] bg-brand-accentColor text-black px-3 py-1.5 rounded-sm hover:brightness-110 transition-all">
                     Join
                   </button>
                 </SignUpButton>
